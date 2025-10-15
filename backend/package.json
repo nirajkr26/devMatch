@@ -1,0 +1,25 @@
+{
+  "name": "devmatch",
+  "version": "1.0.0",
+  "description": "developer's match maker",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nirajkr26/devMatch.git"
+  },
+  "author": "Niraj Kumar",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nirajkr26/devMatch/issues"
+  },
+  "homepage": "https://github.com/nirajkr26/devMatch#readme",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
