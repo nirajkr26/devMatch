@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema({
         lowercase: true,
         trim: true,
         unique: true,
+
         validator(value) {
             if (!validator.isEmail(value)) {
                 throw new Error("Invalid Email address:" + value)
@@ -37,11 +38,15 @@ const userSchema = new mongoose.Schema({
     },
     gender: {
         type: String,
-        validate(value) {
-            if (!["male", "female", "others"].includes(value)) {
-                throw new Error("gender is not accepted")
-            }
-        }
+        enum: {
+            values: ["male", "female", "others"],
+            message: `{VALUE} is not valid gender type`
+        },
+        // validate(value) {
+        //     if (!["male", "female", "others"].includes(value)) {
+        //         throw new Error("gender is not accepted")
+        //     }
+        // }
     },
     photoUrl: {
         type: String,
@@ -63,6 +68,8 @@ const userSchema = new mongoose.Schema({
 }, {
     timestamps: true,
 });
+
+userSchema.index({ firstName: 1, lastName: 1 });
 
 userSchema.methods.getJWT = function () {
     const user = this;
