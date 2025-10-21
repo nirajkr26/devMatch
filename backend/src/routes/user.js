@@ -32,9 +32,14 @@ router.get("/user/connections", userAuth, async (req, res) => {
                 { fromUserId: loggedInUser._id, status: "accepted" },
                 { toUserId: loggedInUser._id, status: "accepted" }
             ],
-        }).populate("fromUserId", "firstName lastName age gender");
+        }).populate("fromUserId", "firstName lastName age gender").populate("toUserId","firstName lastName age gender");
 
-        const data = connectionRequests.map((row) => row.fromUserId);
+        const data = connectionRequests.map((row) => {
+            if(row.fromUserId._id.toString() == loggedInUser._id.toString()){
+                return row.toUserId;
+            }
+            return row.fromUserId;
+        });
 
         res.json({ data });
 
