@@ -24,6 +24,7 @@ router.get("/user/requests/received", userAuth, async (req, res) => {
 })
 
 router.get("/user/connections", userAuth, async (req, res) => {
+
     try {
         const loggedInUser = req.user;
 
@@ -32,10 +33,10 @@ router.get("/user/connections", userAuth, async (req, res) => {
                 { fromUserId: loggedInUser._id, status: "accepted" },
                 { toUserId: loggedInUser._id, status: "accepted" }
             ],
-        }).populate("fromUserId", "firstName lastName age gender").populate("toUserId","firstName lastName age gender");
+        }).populate("fromUserId", "firstName lastName age gender").populate("toUserId", "firstName lastName age gender");
 
         const data = connectionRequests.map((row) => {
-            if(row.fromUserId._id.toString() == loggedInUser._id.toString()){
+            if (row.fromUserId._id.toString() == loggedInUser._id.toString()) {
                 return row.toUserId;
             }
             return row.fromUserId;
@@ -47,5 +48,36 @@ router.get("/user/connections", userAuth, async (req, res) => {
         res.status(400).send(err.message);
     }
 })
+
+router.get("/feed", userAuth, async (req, res) => {
+    try {
+        const loggedInUser = req.user;
+
+        const connectionRequests = await ConnectionRequest.find({
+            $or: [{ fromUserId: loggedInUser._id }, { toUserId: loggedInUser._id }]
+        }).select("fromUserId toUserId");
+
+        const hideUsersFromFeed = new Set();
+
+        connectionRequests.forEach(req => {
+            hideUsersFromFeed.add(req.fromUserId.toString());
+            hideUsersFromFeed.add(req.toUserId.toString());
+        });
+
+        const users = await User.find({
+            $and: [
+                { _id: { $nin: Array.from(hideUsersFromFeed) } },
+                { _id: { $ne: loggedInUser._id } }
+            ]
+        }).select("firstName lastName age gender skills photoUrl");
+
+        res.send(users);
+
+
+    } catch (err) {
+        res.status(400).send(err.message);
+    }
+})
+
 
 module.exports = router;
