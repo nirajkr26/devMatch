@@ -1,6 +1,7 @@
 const express = require("express");
 const { userAuth } = require("./middlewares/auth");
 const connectDB = require("./config/database");
+const cors = require("cors");
 
 const cookieParser = require("cookie-parser")
 const jwt = require("jsonwebtoken");
@@ -9,6 +10,7 @@ require("dotenv").config();
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
+app.use(cors())
 
 const authRouter = require("./routes/auth")
 const profileRouter = require("./routes/profile")
