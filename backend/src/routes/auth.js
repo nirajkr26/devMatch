@@ -33,11 +33,11 @@ router.post("/login", async (req, res) => {
         const isValidPassword = await user.validatePassword(password);
 
         if (isValidPassword) {
-            const token =  await user.getJWT();
+            const token = await user.getJWT();
 
             res.cookie("token", token),
 
-                res.send("login successful")
+                res.send(user)
         } else {
             throw new Error("invalid credentials")
         }
@@ -47,8 +47,8 @@ router.post("/login", async (req, res) => {
     }
 })
 
-router.post("/logout", async (req,res)=>{
-    res.cookie("token",null,{
+router.post("/logout", async (req, res) => {
+    res.cookie("token", null, {
         expires: new Date(Date.now()),
     });
     res.send("Logout Successful");

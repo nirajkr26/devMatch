@@ -54,7 +54,8 @@ const userSchema = new mongoose.Schema({
             if (!validator.isURL(value)) {
                 throw new Error("Invalid Email address:" + value)
             }
-        }
+        },
+        default:"https://i.pinimg.com/originals/00/28/c7/0028c71f6fe9fce5f87d117f5c5aeeee.jpg",
 
     },
     about: {
