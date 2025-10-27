@@ -10,7 +10,7 @@ router.get("/profile/view", userAuth, async (req, res) => {
     try {
         const user = req.user;
         console.log(user);
-        res.send("sending cookie")
+        res.send(user)
     } catch (err) {
         res.status(500).send(err.message);
     }
