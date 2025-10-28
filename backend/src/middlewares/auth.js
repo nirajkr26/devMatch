@@ -10,7 +10,6 @@ const userAuth = async (req, res, next) => {
         if (!token) {
             return res.status(401).send("Please Login!!");
         }
-        console.log(token)
         const decoded = jwt.verify(token, secret);
 
         const { _id } = decoded;

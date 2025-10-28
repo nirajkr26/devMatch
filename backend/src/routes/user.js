@@ -33,7 +33,7 @@ router.get("/user/connections", userAuth, async (req, res) => {
                 { fromUserId: loggedInUser._id, status: "accepted" },
                 { toUserId: loggedInUser._id, status: "accepted" }
             ],
-        }).populate("fromUserId", "firstName lastName age gender").populate("toUserId", "firstName lastName age gender");
+        }).populate("fromUserId", "firstName lastName age gender photoUrl about").populate("toUserId", "firstName lastName age gender photoUrl about");
 
         const data = connectionRequests.map((row) => {
             if (row.fromUserId._id.toString() == loggedInUser._id.toString()) {
@@ -75,9 +75,9 @@ router.get("/feed", userAuth, async (req, res) => {
                 { _id: { $nin: Array.from(hideUsersFromFeed) } },
                 { _id: { $ne: loggedInUser._id } }
             ]
-        }).select("firstName lastName age gender skills photoUrl").skip(skip).limit(limit);
+        }).select("firstName lastName age gender about skills photoUrl").skip(skip).limit(limit);
 
-        res.send(users);
+        res.json({data: users});
 
 
     } catch (err) {

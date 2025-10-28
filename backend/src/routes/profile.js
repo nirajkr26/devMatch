@@ -31,7 +31,10 @@ router.patch("/profile/edit", userAuth, async (req, res) => {
         await loggedUser.save();
 
         console.log(loggedUser)
-        res.send(`${loggedUser.firstName} ! your profile updated successfully`)
+        res.json({
+            message: `${loggedUser.firstName} ! your profile updated successfully`,
+            data: loggedUser
+        })
 
     } catch (err) {
         res.status(500).send(err.message);
@@ -49,11 +52,11 @@ router.patch("/profile/password", userAuth, async (req, res) => {
         }
 
         const isStrongPassword = validator.isStrongPassword(newPassword);
-        if (!isStrongPassword){
+        if (!isStrongPassword) {
             res.send("weak password")
         }
 
-        const hashedPassword = await bcrypt.hash(newPassword,10);
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
         loggedUser.password = hashedPassword;
         await loggedUser.save();
 

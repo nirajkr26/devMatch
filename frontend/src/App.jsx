@@ -4,7 +4,7 @@ import PageNotFound from "./pages/PageNotFound"
 import Login from "./pages/Login";
 import Feed from "./pages/Feed";
 import Profile from "./pages/Profile";
-import { BASE_URL } from "./utils/constant";
+import Connections from "./pages/Connections";
 
 const App = () => {
   return (
@@ -14,6 +14,7 @@ const App = () => {
           <Route path="/" element={<Feed />} />
           <Route path="/login" element={<Login />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/connections" element={<Connections />} />
         </Route>
         <Route path="*" element={<PageNotFound />} />
       </Routes>
