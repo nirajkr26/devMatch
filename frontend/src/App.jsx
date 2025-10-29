@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import Feed from "./pages/Feed";
 import Profile from "./pages/Profile";
 import Connections from "./pages/Connections";
+import Requests from "./pages/Requests";
 
 const App = () => {
   return (
@@ -15,6 +16,7 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/connections" element={<Connections />} />
+          <Route path="/requests" element={<Requests />} />
         </Route>
         <Route path="*" element={<PageNotFound />} />
       </Routes>

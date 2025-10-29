@@ -13,10 +13,13 @@ router.get("/user/requests/received", userAuth, async (req, res) => {
         const connectionRequests = await ConnectionRequest.find({
             toUserId: loggedInUser._id,
             status: "interested",
-        }).populate("fromUserId", "firstName lastName");
+        }).populate("fromUserId", "firstName lastName photoUrl age gender about skills");
         // }).populate("fromUserId", ["firstName", "lastName","age"]);    
 
-        res.json({ message: "fetched all requests " + connectionRequests });
+        res.json({
+            message: "fetched all requests ",
+            data: connectionRequests
+        });
 
     } catch (err) {
         res.status(400).send(err.message);
@@ -77,7 +80,7 @@ router.get("/feed", userAuth, async (req, res) => {
             ]
         }).select("firstName lastName age gender about skills photoUrl").skip(skip).limit(limit);
 
-        res.json({data: users});
+        res.json({ data: users });
 
 
     } catch (err) {
