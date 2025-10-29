@@ -35,6 +35,7 @@ const userSchema = new mongoose.Schema({
         type: Number,
         min: 18,
         max: 60,
+        default: 18
     },
     gender: {
         type: String,
@@ -42,6 +43,7 @@ const userSchema = new mongoose.Schema({
             values: ["male", "female", "others"],
             message: `{VALUE} is not valid gender type`
         },
+        default:"others"
         // validate(value) {
         //     if (!["male", "female", "others"].includes(value)) {
         //         throw new Error("gender is not accepted")

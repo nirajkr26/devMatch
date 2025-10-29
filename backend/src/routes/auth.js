@@ -15,8 +15,15 @@ router.post("/signup", async (req, res) => {
         firstName, lastName, age, gender, emailId, password: passwordHash
     });
 
-    await user.save();
-    res.send("user added")
+    const savedUser = await user.save();
+
+    const token = await savedUser.getJWT();
+
+    res.cookie("token", token, {
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    }),
+
+        res.send(savedUser)
 })
 
 router.post("/login", async (req, res) => {
