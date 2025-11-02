@@ -6,6 +6,7 @@ const Payment = require("../models/payment");
 const { membershipAmount } = require("../utils/constants")
 const { validateWebhookSignature } = require('razorpay/dist/utils/razorpay-utils')
 const crypto = require("crypto");
+const User = require("../models/user");
 
 router.post("/payment/create", userAuth, async (req, res) => {
     try {
@@ -63,15 +64,19 @@ router.post("/payment/verify", userAuth, async (req, res) => {
                 { new: true }
             );
 
+            const user = await User.findOne({_id:payment.userId});
+            user.isPremium = true;
+            user.membershipType = payment.notes.membershipType;
+
+            await user.save();
+
             return res.json({
                 success: true,
                 message: "Payment verified successfully",
                 payment,
             });
         } else {
-            return res
-                .status(400)
-                .json({ success: false, message: "Invalid signature" });
+            return res.status(400).json({ success: false,message: "Invalid signature" });
         }
     } catch (err) {
         console.error("Payment verify error:", err);
