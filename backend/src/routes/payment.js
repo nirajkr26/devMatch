@@ -4,6 +4,8 @@ const { userAuth } = require("../middlewares/auth");
 const razorpayInstance = require("../utils/razorpay");
 const Payment = require("../models/payment");
 const { membershipAmount } = require("../utils/constants")
+const { validateWebhookSignature } = require('razorpay/dist/utils/razorpay-utils')
+const crypto = require("crypto");
 
 router.post("/payment/create", userAuth, async (req, res) => {
     try {
@@ -42,6 +44,40 @@ router.post("/payment/create", userAuth, async (req, res) => {
     }
 })
 
+router.post("/payment/verify", userAuth, async (req, res) => {
+    try {
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+        const generatedSignature = crypto
+            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+            .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+            .digest("hex");
+
+        if (generatedSignature === razorpay_signature) {
+            const payment = await Payment.findOneAndUpdate(
+                { orderId: razorpay_order_id },
+                {
+                    paymentId: razorpay_payment_id,
+                    status: "paid",
+                },
+                { new: true }
+            );
+
+            return res.json({
+                success: true,
+                message: "Payment verified successfully",
+                payment,
+            });
+        } else {
+            return res
+                .status(400)
+                .json({ success: false, message: "Invalid signature" });
+        }
+    } catch (err) {
+        console.error("Payment verify error:", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+});
 
 module.exports = router;
 
