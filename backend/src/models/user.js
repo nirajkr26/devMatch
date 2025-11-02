@@ -43,12 +43,18 @@ const userSchema = new mongoose.Schema({
             values: ["male", "female", "others"],
             message: `{VALUE} is not valid gender type`
         },
-        default:"others"
+        default: "others"
         // validate(value) {
         //     if (!["male", "female", "others"].includes(value)) {
         //         throw new Error("gender is not accepted")
         //     }
         // }
+    },
+    isPremium: {
+        type: Boolean,
+    },
+    membershipType: {
+        type: String,
     },
     photoUrl: {
         type: String,
@@ -57,7 +63,7 @@ const userSchema = new mongoose.Schema({
                 throw new Error("Invalid Email address:" + value)
             }
         },
-        default:"https://i.pinimg.com/originals/00/28/c7/0028c71f6fe9fce5f87d117f5c5aeeee.jpg",
+        default: "https://i.pinimg.com/originals/00/28/c7/0028c71f6fe9fce5f87d117f5c5aeeee.jpg",
 
     },
     about: {
