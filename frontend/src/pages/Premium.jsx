@@ -1,8 +1,18 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import axios from "axios";
 import { BASE_URL } from "../utils/constant";
+import { useSelector } from 'react-redux';
 
 const Premium = () => {
+    const [isPremium, setIsPremium] = useState(false);
+
+    const user = useSelector((store) => store.user);
+
+    useEffect(() => {
+        if (user)
+            setIsPremium(user?.isPremium);
+    }, [user])
+
 
     const handlePurchase = async (type) => {
         try {
@@ -39,6 +49,7 @@ const Premium = () => {
                         );
 
                         if (verifyRes.data.success) {
+                            setIsPremium(true);
                             alert("✅ Payment successful and verified!");
                         } else {
                             alert("⚠️ Payment verification failed!");
@@ -67,7 +78,7 @@ const Premium = () => {
         }
     }
 
-    return (
+    return isPremium ? (<div className='text-3xl text-center'>You are already a Premium User</div>) : (
         <div className='container mx-auto my-10'>
             <div className="flex w-full  flex-col lg:flex-row">
                 <div className="card bg-base-300 rounded-box grid h-32 grow place-items-center">

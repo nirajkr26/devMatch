@@ -64,7 +64,7 @@ router.post("/payment/verify", userAuth, async (req, res) => {
                 { new: true }
             );
 
-            const user = await User.findOne({_id:payment.userId});
+            const user = await User.findOne({ _id: payment.userId });
             user.isPremium = true;
             user.membershipType = payment.notes.membershipType;
 
@@ -76,7 +76,7 @@ router.post("/payment/verify", userAuth, async (req, res) => {
                 payment,
             });
         } else {
-            return res.status(400).json({ success: false,message: "Invalid signature" });
+            return res.status(400).json({ success: false, message: "Invalid signature" });
         }
     } catch (err) {
         console.error("Payment verify error:", err);
