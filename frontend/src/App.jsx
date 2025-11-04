@@ -7,6 +7,7 @@ import Profile from "./pages/Profile";
 import Connections from "./pages/Connections";
 import Requests from "./pages/Requests";
 import Premium from "./pages/Premium";
+import Chat from "./pages/Chat";
 
 const App = () => {
   return (
@@ -19,6 +20,7 @@ const App = () => {
           <Route path="/connections" element={<Connections />} />
           <Route path="/requests" element={<Requests />} />
           <Route path="/premium" element={<Premium />} />
+          <Route path="/chat/:targetUserId" element={<Chat />} />
         </Route>
         <Route path="*" element={<PageNotFound />} />
       </Routes>

@@ -3,6 +3,7 @@ import axios from 'axios'
 import { BASE_URL } from '../utils/constant'
 import { useDispatch, useSelector } from 'react-redux'
 import { addConnections } from '../utils/connectionSlice'
+import { Link } from "react-router-dom";
 
 const Connections = () => {
     const dispatch = useDispatch();
@@ -34,15 +35,27 @@ const Connections = () => {
                 const { _id, firstName, lastName, age, gender, about, photoUrl } = connection;
 
                 return (
-                    <div key={_id} className='m-4 p-4 w-[40vw] mx-auto rounded-lg  flex bg-base-300' >
-                        <img alt='photo' className='rounded-full w-20 h-20' src={photoUrl} />
-                        <div className='mx-2 text-left'>
-                            <h2 className='font-bold text-xl'>{firstName + " " + lastName}</h2>
-                            {age && gender && <p>{age + ", " + gender}</p>}
-                            <p>{about}</p>
+                    <div
+                        key={_id}
+                        className="m-4 p-4 w-full md:w-[40vw] mx-auto rounded-lg bg-base-300 flex items-center justify-between"
+                    >
+                        <div className="flex items-center">
+                            <img
+                                alt="profile"
+                                className="rounded-full w-20 h-20 object-cover"
+                                src={photoUrl || "/default-avatar.png"}
+                            />
+                            <div className="mx-4 text-left">
+                                <h2 className="font-bold text-xl">{`${firstName} ${lastName}`}</h2>
+                                {age && gender && <p>{`${age}, ${gender}`}</p>}
+                                <p className="text-sm text-gray-500">{about}</p>
+                            </div>
                         </div>
-                        {console.log(photoUrl)}
+
+                        <Link to={"/chat/" + _id}
+                        > <button className="btn btn-primary">Chat</button></Link>
                     </div>
+
                 )
             })}
 
