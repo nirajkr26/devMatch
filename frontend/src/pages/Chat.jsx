@@ -39,9 +39,9 @@ const Chat = () => {
         socket.emit("joinChat", { userId, targetUserId })
 
 
-        socket.on("messageReceived", ({ firstName, text }) => {
+        socket.on("messageReceived", ({ firstName,lastName, text }) => {
             console.log(firstName + " " + text);
-            setMessages((messages) => [...messages, { firstName, text }]);
+            setMessages((messages) => [...messages, { firstName, lastName, text }]);
         })
 
         return () => {
@@ -53,6 +53,7 @@ const Chat = () => {
         const socket = createSocketConnection();
         socket.emit("sendMessage", {
             firstName: user.firstName,
+            lastName: user.lastName,
             userId,
             targetUserId,
             text: newMessage
@@ -67,10 +68,10 @@ const Chat = () => {
                 {messages.map((msg, index) => {
                     return (
                         <div key={index}>
-                            <div className="chat chat-start">
+                            <div className={"chat " + (user.firstName == msg.firstName ? "chat-end":"chat-start")}>
                                 <div className="chat-header">
                                     {`${msg.firstName} ${msg.lastName}`}
-                                    {/* <time className="text-xs opacity-50"></time> */}
+                                    {/* <time className= "text-xs opacity-50"></time> */}
                                 </div>
                                 <div className="chat-bubble">{msg.text}</div>
                             </div>

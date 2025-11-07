@@ -1,7 +1,7 @@
 const socket = require("socket.io")
 const crypto = require("crypto");
 const { Chat } = require("../models/chat");
-
+const { ConnectionRequest } = require("../models/connRequest")
 
 const getSecretRoomId = (userId, targetUserId) => {
     return crypto.createHash("sha256").update([userId, targetUserId].sort().join("_")).digest("hex");
@@ -24,10 +24,20 @@ const initializeSocket = (server) => {
             socket.join(roomId);
         })
 
-        socket.on("sendMessage", async ({ firstName, userId, targetUserId, text }) => {
+        socket.on("sendMessage", async ({ firstName, lastName, userId, targetUserId, text }) => {
 
             try {
                 const roomId = getSecretRoomId(userId, targetUserId)
+
+                const conn = await ConnectionRequest.findOne({
+                    $or: [
+                        { fromUserId: userId, toUserId: targetUserId, status: "accepted" },
+                        { fromUserId: targetUserId, toUserId: userId, status: "accepted" }
+                    ]
+                })
+
+                if (!conn) throw new Error("Not friends");
+
 
                 let chat = await Chat.findOne({
                     participants: { $all: [userId, targetUserId] }
@@ -47,7 +57,7 @@ const initializeSocket = (server) => {
 
                 await chat.save();
 
-                io.to(roomId).emit("messageReceived", { firstName, text })
+                io.to(roomId).emit("messageReceived", { firstName, lastName, text })
             } catch (err) {
                 console.log(err);
             }
