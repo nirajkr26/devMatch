@@ -20,6 +20,9 @@ router.post("/signup", async (req, res) => {
     const token = await savedUser.getJWT();
 
     res.cookie("token", token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
         expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     }),
 
@@ -42,6 +45,9 @@ router.post("/login", async (req, res) => {
             const token = await user.getJWT();
 
             res.cookie("token", token, {
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
                 expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
             }),
 
@@ -57,6 +63,9 @@ router.post("/login", async (req, res) => {
 
 router.post("/logout", async (req, res) => {
     res.cookie("token", null, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
         expires: new Date(Date.now()),
     });
     res.send("Logout Successful");
