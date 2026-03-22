@@ -4,18 +4,24 @@ const router = express.Router();
 const { Chat } = require("../models/chat");
 const { userAuth } = require("../middlewares/auth");
 
-router.get("/chat/:targetUserId", userAuth,async (req, res) => {
+/**
+ * Route to fetch chat history between the current user and a target user.
+ * Automatically initializes a new chat document if one doesn't exist.
+ */
+router.get("/chat/:targetUserId", userAuth, async (req, res, next) => {
     try {
         const { targetUserId } = req.params;
         const userId = req.user._id
 
+        // Find existing chat containing BOTH participants
         let chat = await Chat.findOne({
             participants: { $all: [userId, targetUserId] }
         }).populate({
-            path:"messages.senderId",
-            select:"firstName lastName"
+            path: "messages.senderId",
+            select: "firstName lastName" // Only fetch name for UI
         })
 
+        // If no chat exists (first time messaging), create it
         if (!chat) {
             chat = new Chat({
                 participants: [userId, targetUserId],
@@ -27,7 +33,7 @@ router.get("/chat/:targetUserId", userAuth,async (req, res) => {
 
         res.json(chat);
     } catch (err) {
-        res.status(500).send(err.message);
+        next(err);
     }
 })
 

@@ -9,6 +9,7 @@ const Chat = () => {
     const { targetUserId } = useParams();
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
+    const [socket, setSocket] = useState(null);
 
     const user = useSelector(store => store.user);
     const userId = user?._id;
@@ -35,22 +36,25 @@ const Chat = () => {
     useEffect(() => {
         if (!userId) return;
 
-        const socket = createSocketConnection();
-        socket.emit("joinChat", { userId, targetUserId })
+        const newSocket = createSocketConnection();
+        setSocket(newSocket);
 
+        newSocket.emit("joinChat", { userId, targetUserId })
 
-        socket.on("messageReceived", ({ firstName,lastName, text }) => {
+        newSocket.on("messageReceived", ({ firstName, lastName, text }) => {
             console.log(firstName + " " + text);
-            setMessages((messages) => [...messages, { firstName, lastName, text }]);
+            setMessages((prevMessages) => [...prevMessages, { firstName, lastName, text }]);
         })
 
         return () => {
-            socket.disconnect();
+            newSocket.disconnect();
+            setSocket(null);
         }
     }, [userId, targetUserId])
 
     const sendMessage = () => {
-        const socket = createSocketConnection();
+        if (!socket) return;
+
         socket.emit("sendMessage", {
             firstName: user.firstName,
             lastName: user.lastName,
@@ -68,7 +72,7 @@ const Chat = () => {
                 {messages.map((msg, index) => {
                     return (
                         <div key={index}>
-                            <div className={"chat " + (user.firstName == msg.firstName ? "chat-end":"chat-start")}>
+                            <div className={"chat " + (user.firstName == msg.firstName ? "chat-end" : "chat-start")}>
                                 <div className="chat-header">
                                     {`${msg.firstName} ${msg.lastName}`}
                                     {/* <time className= "text-xs opacity-50"></time> */}

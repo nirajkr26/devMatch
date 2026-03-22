@@ -1,17 +1,22 @@
 const mongoose = require("mongoose");
-
-
+/**
+ * ConnectionRequest Model Schema.
+ * Tracks invitations between users (Pending, Accepted, Ignored, Rejected).
+ */
 const connectionRequestSchema = new mongoose.Schema({
+    // User who initiated the request
     fromUserId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User", //reference to the user
+        ref: "User",
         required: true,
     },
+    // Recipient user of the request
     toUserId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true,
     },
+    // Lifecycle status of the connection
     status: {
         type: String,
         required: true,
@@ -21,11 +26,15 @@ const connectionRequestSchema = new mongoose.Schema({
         }
     }
 }, {
-    timestamps: true
+    timestamps: true // Track when request was created and updated
 })
 
+// Index for optimizing queries that check relationship between two specific users
 connectionRequestSchema.index({ fromUserId: 1, toUserId: 1 });
 
+/**
+ * Validation hook before saving to prevent users from requesting themselves.
+ */
 connectionRequestSchema.pre("save", function (next) {
     const connectionRequest = this;
 
@@ -33,10 +42,7 @@ connectionRequestSchema.pre("save", function (next) {
         throw new Error("Cannot send connection request to yourself");
     }
     next();
-    
 })
-
-
 
 const ConnectionRequest = new mongoose.model("ConnectionRequest", connectionRequestSchema);
 

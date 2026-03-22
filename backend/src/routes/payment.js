@@ -8,78 +8,51 @@ const { validateWebhookSignature } = require('razorpay/dist/utils/razorpay-utils
 const crypto = require("crypto");
 const User = require("../models/user");
 
-router.post("/payment/create", userAuth, async (req, res) => {
+const paymentService = require("../services/paymentService");
+
+/**
+ * Route to initiate a new premium subscription payment.
+ * Creates a Razorpay order via the payment service.
+ */
+router.post("/payment/create", userAuth, async (req, res, next) => {
     try {
         const { membershipType } = req.body;
-        const { firstName, lastName, emailId } = req.user;
+        // Delegate order creation logic to service layer
+        const savedPayment = await paymentService.createPayment(req.user, membershipType);
 
-        const order = await razorpayInstance.orders.create({
-            "amount": membershipAmount[membershipType],
-            "currency": "INR",
-            "receipt": "receipt123",
-            "notes": {
-                firstName,
-                lastName,
-                emailId,
-                membershipType: membershipType,
-            }
-        })
-
-        console.log(order);
-        const payment = new Payment({
-            userId: req.user._id,
-            orderId: order.id,
-            status: order.status,
-            amount: order.amount,
-            currency: order.currency,
-            receipt: order.receipt,
-            notes: order.notes,
-        })
-
-        const savedPayment = await payment.save();
-
+        // Send payment details and public Razorpay Key to frontend to trigger UI
         res.json({ ...savedPayment.toJSON(), keyId: process.env.RAZORPAY_KEY_ID });
-    }
-    catch (err) {
-        res.status(500).send(err.message);
+    } catch (err) {
+        next(err);
     }
 })
 
-router.post("/payment/verify", userAuth, async (req, res) => {
+/**
+ * Route to verify the outcome of a payment.
+ * Validates the HMAC signature provided by Razorpay frontend.
+ */
+router.post("/payment/verify", userAuth, async (req, res, next) => {
     try {
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
-        const generatedSignature = crypto
-            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-            .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-            .digest("hex");
+        // Perform server-side validation of the signature
+        const payment = await paymentService.verifyPayment(
+            razorpay_order_id,
+            razorpay_payment_id,
+            razorpay_signature
+        );
 
-        if (generatedSignature === razorpay_signature) {
-            const payment = await Payment.findOneAndUpdate(
-                { orderId: razorpay_order_id },
-                {
-                    paymentId: razorpay_payment_id,
-                    status: "paid",
-                },
-                { new: true }
-            );
-
-            const user = await User.findOne({ _id: payment.userId });
-            user.isPremium = true;
-            user.membershipType = payment.notes.membershipType;
-
-            await user.save();
-
-            return res.json({
-                success: true,
-                message: "Payment verified successfully",
-                payment,
-            });
-        } else {
-            return res.status(400).json({ success: false, message: "Invalid signature" });
-        }
+        return res.json({
+            success: true,
+            message: "Payment verified successfully",
+            payment,
+        });
     } catch (err) {
         console.error("Payment verify error:", err);
+        // Specifically handle signature mismatches as user-facing errors
+        if (err.message === "Invalid signature") {
+            return res.status(400).json({ success: false, message: "Invalid signature" });
+        }
         return res.status(500).json({ success: false, message: err.message });
     }
 });

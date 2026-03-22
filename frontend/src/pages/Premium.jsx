@@ -31,7 +31,7 @@ const Premium = () => {
                 name: 'Dev Match',
                 description: 'Connect with Developers',
                 order_id: orderId,
-                // callback_url: 'http://localhost:5173/payment-success', // Your success URL
+                callback_url: 'http://localhost:5173/payment-success', // Your success URL
                 prefill: {
                     name: notes.firstName + " " + notes.lastName,
                     email: notes.emailId,
