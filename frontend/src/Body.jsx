@@ -16,8 +16,11 @@ const Body = () => {
         try {
             const res = await axios.get(BASE_URL + "/profile/view", { withCredentials: true })
             dispatch(addUser(res.data));
+            if (window.location.pathname === "/") {
+                navigate("/feed");
+            }
         } catch (err) {
-            if (err.status == 401) {
+            if (err.status === 401 && window.location.pathname !== "/login" && window.location.pathname !== "/") {
                 navigate("/login");
             }
             console.error(err);
@@ -25,16 +28,20 @@ const Body = () => {
     }
 
     useEffect(() => {
-        if (!userData){
+        if (!userData) {
             fetchUser();
         }
     }, []);
 
+    const showFooter = ["/", "/login"].includes(window.location.pathname);
+
     return (
-        <div>
+        <div className="flex flex-col min-h-screen">
             <Navbar />
-            <Outlet />
-            <Footer />
+            <main className="flex-1">
+                <Outlet />
+            </main>
+            {showFooter && <Footer />}
         </div>
     )
 }

@@ -125,7 +125,7 @@ const initializeSocket = (server) => {
                 await chat.save();
 
                 // Broadcast message only to participants in the specific room
-                io.to(roomId).emit("messageReceived", { firstName, lastName, text })
+                io.to(roomId).emit("messageReceived", { senderId: userId, firstName, lastName, text })
             } catch (err) {
                 console.error("Socket Error (sendMessage):", err);
             }
