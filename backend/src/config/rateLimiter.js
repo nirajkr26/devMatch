@@ -19,7 +19,7 @@ const createGlobalLimiter = () => rateLimit({
 });
 
 const createAuthLimiter = () => rateLimit({
-    windowMs: 60 * 60 * 1000,
+    windowMs: 15 * 60 * 1000,
     max: 10,
     standardHeaders: true,
     legacyHeaders: false,
@@ -27,7 +27,7 @@ const createAuthLimiter = () => rateLimit({
         sendCommand: (...args) => redisClient.sendCommand(args),
         prefix: "rl:auth:",
     }),
-    message: "Too many authentication attempts, Try again after 1 hour"
+    message: "Too many authentication attempts, Try again after 15 minutes"
 });
 
 const createOtpLimiter = () => rateLimit({

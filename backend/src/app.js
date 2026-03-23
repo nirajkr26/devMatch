@@ -6,9 +6,11 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser")
 const jwt = require("jsonwebtoken");
 const http = require("http");
-const { connectRedis } = require("./config/redis");
+const { connectRedis, redisClient } = require("./config/redis");
 const { createGlobalLimiter } = require("./config/rateLimiter");
+const mongoose = require("mongoose");
 require("dotenv").config();
+
 
 const app = express();
 
@@ -25,6 +27,34 @@ app.use(cors({
     origin: process.env.FRONTEND_URL,
     credentials: true
 }))
+
+/**
+ * Health Check Endpoint
+ * Provides system status and database connectivity info
+ */
+app.get("/health", async (req, res) => {
+    const healthcheck = {
+        uptime: process.uptime(),
+        message: 'OK',
+        timestamp: new Date().toISOString(),
+        systems: {
+            mongodb: mongoose.connection.readyState === 1 ? 'up' : 'down',
+            redis: redisClient.isOpen ? 'up' : 'down'
+        }
+    };
+
+    try {
+        if (healthcheck.systems.mongodb === 'down' || healthcheck.systems.redis === 'down') {
+            res.status(503).json(healthcheck);
+        } else {
+            res.status(200).json(healthcheck);
+        }
+    } catch (error) {
+        healthcheck.message = error;
+        res.status(503).json(healthcheck);
+    }
+});
+
 
 /**
  * Import Router Factories (to avoid early Redis access)
