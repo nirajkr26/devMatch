@@ -2,8 +2,8 @@ import React, { useEffect, useState, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom';
 import { createSocketConnection } from '../utils/socket';
 import { useSelector } from "react-redux"
-import { BASE_URL } from '../utils/constant';
-import axios from "axios"
+import { ArrowLeftIcon, DirectMessageIcon, AttachmentIcon, PaperPlaneIcon } from '../utils/Icons';
+import { useGetChatQuery, useGetConnectionsQuery } from '../utils/apiSlice'
 
 const Chat = () => {
     const { targetUserId } = useParams();
@@ -17,6 +17,10 @@ const Chat = () => {
     const userId = user?._id;
     const messagesEndRef = useRef(null);
 
+    // Connections & Chat History retrieval
+    const { data: sessionConnections } = useGetConnectionsQuery();
+    const { data: chatHistory, isLoading } = useGetChatQuery(targetUserId);
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
@@ -26,62 +30,57 @@ const Chat = () => {
     }, [messages]);
 
     const findTargetUser = () => {
-        // Method 1: Check connections in Redux
-        if (connections) {
-            const found = connections.find(c => c._id === targetUserId);
+        // First priority: Query data (current sessions)
+        const connectionsArr = sessionConnections?.data || connections;
+        if (connectionsArr) {
+            const found = connectionsArr.find(c => c._id === targetUserId);
             if (found) return found;
         }
         return null;
     }
 
-    const fetchChatMessages = async () => {
-        try {
-            // First, try to get user info from connections (fastest)
-            const localUser = findTargetUser();
-            if (localUser) {
-                setTargetUser(localUser);
-            }
-
-            const chat = await axios.get(BASE_URL + "/chat/" + targetUserId, {
-                withCredentials: true,
-            });
-
-            const chatMessages = chat?.data?.messages.map((msg) => {
-                return {
-                    senderId: msg?.senderId?._id,
-                    firstName: msg?.senderId?.firstName,
-                    lastName: msg?.senderId?.lastName,
-                    photoUrl: msg?.senderId?.photoUrl,
-                    text: msg?.text,
-                    createdAt: msg?.createdAt
-                }
-            })
-            setMessages(chatMessages)
-
-            // Method 2: If still no user info, try to extract it from messages
-            if (!localUser) {
-                const otherPerson = chat?.data?.messages?.find(m => m.senderId?._id === targetUserId)?.senderId;
-                if (otherPerson) setTargetUser(otherPerson);
-            }
-        } catch (err) {
-            console.error(err);
-        }
-    }
-
+    // Sync query data with local state for socket integration
     useEffect(() => {
-        fetchChatMessages();
-    }, [targetUserId, connections]);
+        if (chatHistory) {
+            setMessages(chatHistory);
+        }
+    }, [chatHistory]);
 
+    // Handle target user info with fallbacks
+    useEffect(() => {
+        const locallyFound = findTargetUser();
+        if (locallyFound) {
+            setTargetUser(locallyFound);
+        } else if (chatHistory && chatHistory.length > 0) {
+            // Fallback: extract other person's details from chat messages
+            const opponentMsg = chatHistory.find(m => m.senderId === targetUserId);
+            if (opponentMsg) {
+                setTargetUser({
+                    firstName: opponentMsg.firstName,
+                    lastName: opponentMsg.lastName,
+                    photoUrl: opponentMsg.photoUrl,
+                    _id: targetUserId
+                });
+            }
+        }
+    }, [targetUserId, connections, chatHistory, sessionConnections]);
+
+    // Socket Connection Setup
     useEffect(() => {
         if (!userId) return;
 
         const newSocket = createSocketConnection();
         setSocket(newSocket);
-
         newSocket.emit("joinChat", { userId, targetUserId })
 
         newSocket.on("messageReceived", ({ senderId, firstName, lastName, text }) => {
-            setMessages((prevMessages) => [...prevMessages, { senderId, firstName, lastName, text, createdAt: new Date() }]);
+            setMessages((prevMessages) => [...prevMessages, {
+                senderId,
+                firstName,
+                lastName,
+                text,
+                createdAt: new Date()
+            }]);
         })
 
         return () => {
@@ -109,9 +108,7 @@ const Chat = () => {
             <div className='px-6 py-4 bg-base-300 border-b border-base-200 flex items-center justify-between'>
                 <div className='flex items-center gap-4'>
                     <Link to="/connections" className='md:hidden btn btn-ghost btn-circle btn-sm'>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                        </svg>
+                        <ArrowLeftIcon className="w-5 h-5" />
                     </Link>
                     <div className="avatar online placeholder hover:scale-105 transition-transform duration-300">
                         <div className="w-12 rounded-2xl bg-base-100 ring-2 ring-base-200 overflow-hidden shadow-md">
@@ -138,45 +135,46 @@ const Chat = () => {
 
             {/* Chat Messages */}
             <div className='flex-1 overflow-y-auto px-4 py-8 space-y-6 scrollbar-thin scrollbar-thumb-base-100 bg-base-100/30'>
-                {messages.length === 0 && (
+                {isLoading ? (
+                    <div className="flex flex-col items-center justify-center h-full gap-4">
+                        <span className="loading loading-ring loading-lg text-primary opacity-20"></span>
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Loading Archive</p>
+                    </div>
+                ) : messages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full opacity-30 text-center gap-4">
                         <div className="p-8 rounded-full bg-base-200 border border-base-300">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-12 h-12 text-primary opacity-50"><path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" /></svg>
+                            <DirectMessageIcon className="w-12 h-12 text-primary opacity-50" />
                         </div>
                         <p className="font-black uppercase tracking-[0.3em] text-[10px]">Your professional journey starts with a hello.</p>
                     </div>
-                )}
-
-                {messages.map((msg, index) => {
-                    const isSender = userId === msg.senderId;
-                    return (
-                        <div key={index} className={"chat " + (isSender ? "chat-end" : "chat-start") + " group animate-fadeInUp"}>
-                            <div className="chat-image avatar">
-                                <div className="w-10 rounded-xl shadow-lg ring-2 ring-base-100 ring-offset-2 ring-offset-base-300 overflow-hidden bg-base-300">
-                                    {isSender ? (
-                                        <img src={user?.photoUrl || "/default-avatar.png"} alt="me" />
-                                    ) : (
-                                        <img src={targetUser?.photoUrl || "/default-avatar.png"} alt="other" />
-                                    )}
+                ) : (
+                    messages.map((msg, index) => {
+                        const isSender = userId === msg.senderId;
+                        return (
+                            <div key={index} className={"chat " + (isSender ? "chat-end" : "chat-start") + " group animate-fadeInUp"}>
+                                <div className="chat-image avatar">
+                                    <div className="w-10 rounded-xl shadow-lg ring-2 ring-base-100 ring-offset-2 ring-offset-base-300 overflow-hidden bg-base-300">
+                                        <img src={(isSender ? user?.photoUrl : targetUser?.photoUrl) || "/default-avatar.png"} alt="avatar" />
+                                    </div>
+                                </div>
+                                <div className="chat-header mb-1 mx-2 flex items-center gap-2">
+                                    <span className='text-[10px] font-black uppercase tracking-widest opacity-40'>
+                                        {isSender ? "You" : `${msg.firstName}`}
+                                    </span>
+                                    <time className="text-[9px] opacity-20 font-bold group-hover:opacity-60 transition-opacity">
+                                        {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
+                                    </time>
+                                </div>
+                                <div className={"chat-bubble py-3 px-5 shadow-xl leading-relaxed text-sm md:text-base transition-all " +
+                                    (isSender
+                                        ? "bg-primary text-white rounded-br-none font-medium"
+                                        : "bg-base-300 text-base-content rounded-bl-none border border-base-200")}>
+                                    {msg.text}
                                 </div>
                             </div>
-                            <div className="chat-header mb-1 mx-2 flex items-center gap-2">
-                                <span className='text-[10px] font-black uppercase tracking-widest opacity-40'>
-                                    {isSender ? "You" : `${msg.firstName}`}
-                                </span>
-                                <time className="text-[9px] opacity-20 font-bold group-hover:opacity-60 transition-opacity">
-                                    {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
-                                </time>
-                            </div>
-                            <div className={"chat-bubble py-3 px-5 shadow-xl leading-relaxed text-sm md:text-base transition-all " +
-                                (isSender
-                                    ? "bg-primary text-white rounded-br-none font-medium"
-                                    : "bg-base-300 text-base-content rounded-bl-none border border-base-200")}>
-                                {msg.text}
-                            </div>
-                        </div>
-                    )
-                })}
+                        )
+                    })
+                )}
                 <div ref={messagesEndRef} />
             </div>
 
@@ -184,7 +182,7 @@ const Chat = () => {
             <div className='bg-base-300 p-4 md:p-6 border-t border-base-200'>
                 <div className='flex items-end gap-3 max-w-4xl mx-auto bg-base-100 rounded-[1.5rem] p-2 pr-3 border border-base-200 shadow-xl focus-within:ring-2 focus-within:ring-primary/20 transition-all'>
                     <button className='btn btn-circle btn-ghost opacity-40 hover:opacity-100 hover:text-primary transition-all hidden sm:flex'>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94a3 3 0 114.243 4.243L8.767 14.532a1.5 1.5 0 01-2.121-2.121l7.071-7.071" /></svg>
+                        <AttachmentIcon className="w-6 h-6" />
                     </button>
                     <textarea
                         rows="1"
@@ -203,7 +201,7 @@ const Chat = () => {
                         onClick={sendMessage}
                         className={`btn btn-circle btn-primary shadow-lg shadow-primary/20 transition-all duration-300 ${!newMessage.trim() ? "opacity-20 scale-90" : "scale-110 active:scale-95"}`}
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5 translate-x-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" /></svg>
+                        <PaperPlaneIcon className="w-5 h-5 translate-x-0.5" />
                     </button>
                 </div>
             </div>

@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { BASE_URL } from '../utils/constant';
-import { useDispatch } from 'react-redux';
-import { addUser } from '../utils/userSlice';
 
 const VerifyOtp = () => {
     const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -12,6 +10,7 @@ const VerifyOtp = () => {
     const [resending, setResending] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
+    const inputRefs = useRef([]);
 
     // Get email from signup state
     const emailId = location.state?.emailId;
@@ -22,24 +21,44 @@ const VerifyOtp = () => {
         }
     }, [emailId, navigate]);
 
-    const handleChange = (element, index) => {
-        if (isNaN(element.value)) return false;
+    const handleChange = (e, index) => {
+        const value = e.target.value;
+        if (isNaN(value)) return;
 
-        setOtp([...otp.map((d, idx) => (idx === index ? element.value : d))]);
+        const newOtp = [...otp];
+        newOtp[index] = value.substring(value.length - 1);
+        setOtp(newOtp);
 
-        // Focus next input
-        if (element.nextSibling && element.value) {
-            element.nextSibling.focus();
+        // Move focus to next input
+        if (value && index < 5 && inputRefs.current[index + 1]) {
+            inputRefs.current[index + 1].focus();
         }
     };
 
     const handleKeyDown = (e, index) => {
-        if (e.key === 'Backspace' && !otp[index] && e.target.previousSibling) {
-            e.target.previousSibling.focus();
+        if (e.key === 'Backspace' && !otp[index] && index > 0 && inputRefs.current[index - 1]) {
+            inputRefs.current[index - 1].focus();
         }
     };
 
-    const handleVerify = async () => {
+    const handlePaste = (e) => {
+        e.preventDefault();
+        const data = e.clipboardData.getData('text').slice(0, 6);
+        if (!/^\d+$/.test(data)) return;
+
+        const newOtp = [...otp];
+        data.split('').forEach((char, index) => {
+            if (index < 6) newOtp[index] = char;
+        });
+        setOtp(newOtp);
+
+        // Focus the last filled input or the next one
+        const nextIndex = data.length < 6 ? data.length : 5;
+        if (inputRefs.current[nextIndex]) inputRefs.current[nextIndex].focus();
+    };
+
+    const handleVerify = async (e) => {
+        if (e) e.preventDefault();
         const otpValue = otp.join('');
         if (otpValue.length !== 6) {
             setError('Please enter all 6 digits');
@@ -49,14 +68,11 @@ const VerifyOtp = () => {
         setLoading(true);
         setError('');
         try {
-            const res = await axios.post(
+            await axios.post(
                 `${BASE_URL}/verify-otp`,
                 { emailId, otp: otpValue },
                 { withCredentials: true }
             );
-            // On success, backend sends the user object
-            // Use dispatch if you want to log them in immediately
-            // dispatch(addUser(res.data.user));
             navigate('/login', { state: { message: 'Account verified! Please login.' } });
         } catch (err) {
             setError(err.response?.data?.message || 'Verification failed');
@@ -91,39 +107,43 @@ const VerifyOtp = () => {
                         <span className="text-primary font-bold">{emailId}</span>
                     </p>
 
-                    <div className="flex gap-2 mb-8">
-                        {otp.map((data, index) => (
-                            <input
-                                key={index}
-                                type="text"
-                                maxLength="1"
-                                className="w-12 h-14 text-center text-2xl font-black bg-base-100 border-2 border-base-200 rounded-xl focus:border-primary focus:outline-none transition-all"
-                                value={data}
-                                onChange={(e) => handleChange(e.target, index)}
-                                onKeyDown={(e) => handleKeyDown(e, index)}
-                            />
-                        ))}
-                    </div>
-
-                    {error && (
-                        <div className={`text-sm mb-6 ${error.includes('sent') ? 'text-success' : 'text-error'} font-bold animate-fadeIn`}>
-                            {error}
+                    <form onSubmit={handleVerify} className="w-full flex flex-col items-center">
+                        <div className="flex gap-2 mb-8" onPaste={handlePaste}>
+                            {otp.map((data, index) => (
+                                <input
+                                    key={index}
+                                    ref={el => inputRefs.current[index] = el}
+                                    type="text"
+                                    inputMode="numeric"
+                                    maxLength="1"
+                                    className="w-12 h-14 text-center text-2xl font-black bg-base-100 border-2 border-base-200 rounded-xl focus:border-primary focus:outline-none transition-all"
+                                    value={data}
+                                    onChange={(e) => handleChange(e, index)}
+                                    onKeyDown={(e) => handleKeyDown(e, index)}
+                                />
+                            ))}
                         </div>
-                    )}
 
-                    <button
-                        className="btn btn-primary w-full rounded-2xl h-14 text-lg shadow-xl shadow-primary/20"
-                        onClick={handleVerify}
-                        disabled={loading}
-                    >
-                        {loading && <span className="loading loading-spinner loading-sm mr-2"></span>}
-                        {loading ? 'Verifying...' : 'Verify Engine'}
-                    </button>
+                        {error && (
+                            <div className={`text-sm mb-6 ${error.includes('sent') ? 'text-success' : 'text-error'} font-bold animate-fadeIn`}>
+                                {error}
+                            </div>
+                        )}
 
+                        <button
+                            type="submit"
+                            className="btn btn-primary w-full rounded-2xl h-14 text-lg shadow-xl shadow-primary/20"
+                            disabled={loading || otp.some(v => v === '')}
+                        >
+                            {loading && <span className="loading loading-spinner loading-sm mr-2"></span>}
+                            {loading ? 'Verifying...' : 'Verify Engine'}
+                        </button>
+                    </form>
 
                     <p className="mt-8 text-sm opacity-60 font-medium">
                         Didn't receive code?{' '}
                         <button
+                            type="button"
                             className={`text-primary font-black hover:underline ${resending && 'opacity-50 pointer-events-none'}`}
                             onClick={handleResend}
                         >

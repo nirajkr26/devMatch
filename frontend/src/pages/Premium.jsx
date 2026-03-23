@@ -3,6 +3,7 @@ import axios from "axios";
 import { BASE_URL } from "../utils/constant";
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { SimpleCheckIcon } from '../utils/Icons';
 
 const Premium = () => {
     const [isPremium, setIsPremium] = useState(false);
@@ -105,7 +106,7 @@ const Premium = () => {
                         <div className="space-y-4 mb-12">
                             {['Unlimited Feed Access', 'Custom Profile Badge', 'Priority in Discovery'].map((feature, i) => (
                                 <div key={i} className="flex items-center gap-3">
-                                    <svg className="w-5 h-5 text-primary shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
+                                    <SimpleCheckIcon className="w-5 h-5 text-primary shrink-0" />
                                     <span className="text-sm md:text-base font-medium opacity-80">{feature}</span>
                                 </div>
                             ))}
@@ -134,7 +135,7 @@ const Premium = () => {
                         <div className="space-y-4 mb-12">
                             {['Everything in Silver', 'Direct Chat Access', 'Personal Profile Boost', 'Premium Support'].map((feature, i) => (
                                 <div key={i} className="flex items-center gap-3">
-                                    <svg className="w-5 h-5 text-secondary shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
+                                    <SimpleCheckIcon className="w-5 h-5 text-secondary shrink-0" />
                                     <span className="text-sm md:text-base font-medium opacity-80">{feature}</span>
                                 </div>
                             ))}

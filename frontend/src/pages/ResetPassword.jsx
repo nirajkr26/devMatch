@@ -3,14 +3,22 @@ import axios from 'axios';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { BASE_URL } from '../utils/constant';
 
+import { useForm } from 'react-hook-form';
+
 const ResetPassword = () => {
     const [searchParams] = useSearchParams();
     const token = searchParams.get('token');
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
+    const navigate = useNavigate();
+
     const [status, setStatus] = useState({ type: '', message: '' });
     const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
+
+    const { register, handleSubmit, watch, formState: { errors } } = useForm({
+        defaultValues: {
+            newPassword: '',
+            confirmPassword: ''
+        }
+    });
 
     useEffect(() => {
         if (!token) {
@@ -18,8 +26,9 @@ const ResetPassword = () => {
         }
     }, [token, navigate]);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const onSubmit = async (data) => {
+        const { newPassword, confirmPassword } = data;
+
         if (newPassword !== confirmPassword) {
             setStatus({ type: 'error', message: "Passwords do not match." });
             return;
@@ -29,7 +38,7 @@ const ResetPassword = () => {
         setStatus({ type: '', message: '' });
 
         try {
-            const res = await axios.post(`${BASE_URL}/reset-password`, { token, newPassword });
+            await axios.post(`${BASE_URL}/reset-password`, { token, newPassword });
             setStatus({ type: 'success', message: 'Password updated successfully! Transitioning to login...' });
             setTimeout(() => navigate('/login'), 2500);
         } catch (err) {
@@ -51,29 +60,32 @@ const ResetPassword = () => {
                         Security override successful. Please enter your new high-strength credentials to secure your account.
                     </p>
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         <div>
-                            <label className="label text-[10px] font-black uppercase tracking-widest opacity-40">New Password</label>
+                            <label htmlFor="newPassword" className="label text-[10px] font-black uppercase tracking-widest opacity-40">New Password</label>
                             <input
+                                id="newPassword"
                                 type="password"
-                                required
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
-                                className="input input-bordered w-full h-14 rounded-2xl focus:input-primary bg-base-100/50 border-base-200 text-base font-medium transition-all"
+                                className={`input input-bordered w-full h-14 rounded-2xl focus:input-primary bg-base-100/50 border-base-200 text-base font-medium transition-all ${errors.newPassword && "input-error"}`}
                                 placeholder="••••••••"
+                                {...register("newPassword", {
+                                    required: "Password is required",
+                                    minLength: { value: 8, message: "Minimum 8 characters" }
+                                })}
                             />
+                            {errors.newPassword && <p className="text-[10px] text-error mt-1 font-bold">{errors.newPassword.message}</p>}
                         </div>
 
                         <div>
-                            <label className="label text-[10px] font-black uppercase tracking-widest opacity-40">Confirm New Password</label>
+                            <label htmlFor="confirmPassword" className="label text-[10px] font-black uppercase tracking-widest opacity-40">Confirm New Password</label>
                             <input
+                                id="confirmPassword"
                                 type="password"
-                                required
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                className="input input-bordered w-full h-14 rounded-2xl focus:input-primary bg-base-100/50 border-base-200 text-base font-medium transition-all"
+                                className={`input input-bordered w-full h-14 rounded-2xl focus:input-primary bg-base-100/50 border-base-200 text-base font-medium transition-all ${errors.confirmPassword && "input-error"}`}
                                 placeholder="••••••••"
+                                {...register("confirmPassword", { required: "Please confirm your password" })}
                             />
+                            {errors.confirmPassword && <p className="text-[10px] text-error mt-1 font-bold">{errors.confirmPassword.message}</p>}
                         </div>
 
                         {status.message && (
@@ -84,14 +96,12 @@ const ResetPassword = () => {
 
                         <button
                             type="submit"
-                            disabled={loading || !newPassword}
+                            disabled={loading}
                             className="btn btn-primary w-full rounded-2xl h-14 text-sm font-black uppercase tracking-widest shadow-xl shadow-primary/20 transition-all active:scale-95"
                         >
                             {loading && <span className="loading loading-spinner loading-sm mr-2"></span>}
                             {loading ? 'Securing...' : 'Establish Password'}
                         </button>
-
-
                     </form>
 
                     <div className="text-center mt-10">

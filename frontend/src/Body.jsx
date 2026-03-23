@@ -1,41 +1,39 @@
+import React, { useEffect } from 'react'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
-import { Outlet, useNavigate } from 'react-router-dom'
-import { BASE_URL } from './utils/constant'
+import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { addUser } from './utils/userSlice'
-import { useEffect } from 'react'
-import axios from 'axios'
+import { useGetProfileQuery } from './utils/apiSlice'
 
 const Body = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
     const userData = useSelector((store) => store.user);
 
-    const fetchUser = async () => {
-        try {
-            const res = await axios.get(BASE_URL + "/profile/view", { withCredentials: true })
-            dispatch(addUser(res.data));
-            if (window.location.pathname === "/") {
-                navigate("/feed");
-            }
-        } catch (err) {
-            const publicPaths = ["/login", "/", "/verify-otp", "/forgot-password", "/reset-password"];
-            if (err.status === 401 && !publicPaths.includes(window.location.pathname)) {
-                navigate("/login");
-            }
-
-            console.error(err);
-        }
-    }
+    // RTK Query hook handles everything including caching
+    const { data: profile, error, isLoading } = useGetProfileQuery();
 
     useEffect(() => {
-        if (!userData) {
-            fetchUser();
+        if (profile) {
+            dispatch(addUser(profile));
+            // Redirect from landing to feed if already logged in
+            if (location.pathname === "/") {
+                navigate("/feed");
+            }
         }
-    }, []);
+    }, [profile, dispatch, location.pathname, navigate]);
 
-    const showFooter = ["/", "/login"].includes(window.location.pathname);
+    useEffect(() => {
+        // Handle unauthorized access to protected routes
+        const publicPaths = ["/login", "/", "/verify-otp", "/forgot-password", "/reset-password"];
+        if (error?.status === 401 && !publicPaths.includes(location.pathname)) {
+            navigate("/login");
+        }
+    }, [error, location.pathname, navigate]);
+
+    const showFooter = ["/", "/login"].includes(location.pathname);
 
     return (
         <div className="flex flex-col min-h-screen">

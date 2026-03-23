@@ -4,6 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { BASE_URL } from "../utils/constant";
 import axios from "axios";
 import { removeUser } from "../utils/userSlice";
+import { SunIcon, MoonIcon } from "../utils/Icons";
 
 const Navbar = () => {
     const user = useSelector((store) => store.user);
@@ -59,8 +60,8 @@ const Navbar = () => {
                             key={link.path}
                             to={link.path}
                             className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${location.pathname === link.path
-                                    ? "bg-primary text-white shadow-md shadow-primary/20"
-                                    : "hover:bg-base-200 opacity-60 hover:opacity-100"
+                                ? "bg-primary text-white shadow-md shadow-primary/20"
+                                : "hover:bg-base-200 opacity-60 hover:opacity-100"
                                 }`}
                         >
                             {link.name}
@@ -77,9 +78,9 @@ const Navbar = () => {
                     className="btn btn-ghost btn-circle text-base-content/70 hover:text-primary transition-colors"
                 >
                     {theme === "dark" ? (
-                        <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12,6.5A5.5,5.5,0,1,0,17.5,12,5.51,5.51,0,0,0,12,6.5Zm0,9A3.5,3.5,0,1,1,15.5,12,3.5,3.5,0,0,1,12,15.5Z" /></svg>
+                        <SunIcon className="w-6 h-6 fill-current" />
                     ) : (
-                        <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Z" /></svg>
+                        <MoonIcon className="w-6 h-6 fill-current" />
                     )}
                 </button>
 

@@ -4,91 +4,58 @@ import { useDispatch } from 'react-redux';
 import { addUser } from '../utils/userSlice';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { BASE_URL } from "../utils/constant"
+import { useForm } from "react-hook-form"
 
 const Login = () => {
     const location = useLocation();
-    const [emailId, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+
     const [isLogin, setIsLogin] = useState(!location.state?.signup);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
+    const { register, handleSubmit, formState: { errors }, reset } = useForm({
+        defaultValues: {
+            emailId: "",
+            password: "",
+            firstName: "",
+            lastName: ""
+        }
+    });
+
     const successMessage = location.state?.message;
 
-
-    const handleLogin = async () => {
-        if (!emailId || !password) {
-            setError("Email and Password are required");
-            return;
-        }
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(emailId)) {
-            setError("Please enter a valid email address");
-            return;
-        }
-        if (password.length < 8) {
-            setError("Password must be at least 8 characters long");
-            return;
-        }
+    const onSubmit = async (formData) => {
         setLoading(true);
+        setError("");
+        const endpoint = isLogin ? "/login" : "/signup";
+
         try {
-            const res = await axios.post(BASE_URL + "/login", {
-                emailId,
-                password
-            }, { withCredentials: true })
-            dispatch(addUser(res.data));
-            navigate("/feed")
+            const res = await axios.post(BASE_URL + endpoint, formData, { withCredentials: true });
+
+            if (isLogin) {
+                dispatch(addUser(res.data));
+                navigate("/feed");
+            } else {
+                navigate("/verify-otp", { state: { emailId: formData.emailId } });
+            }
         } catch (err) {
             if (err?.response?.status === 403) {
-                // If unverified, send them to verify page
-                navigate("/verify-otp", { state: { emailId } });
+                navigate("/verify-otp", { state: { emailId: formData.emailId } });
             } else {
-                setError(err?.response?.data?.message || err?.response?.data || "Invalid Credentials");
+                setError(err?.response?.data?.message || err?.response?.data || "Operation failed. Please try again.");
             }
         } finally {
             setLoading(false);
         }
-    }
+    };
 
-
-
-    const handleSignUp = async () => {
-        if (!firstName || !lastName || !emailId || !password) {
-            setError("All fields are required for sign up");
-            return;
-        }
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(emailId)) {
-            setError("Please enter a valid email address");
-            return;
-        }
-        if (password.length < 8) {
-            setError("Password must be at least 8 characters long");
-            return;
-        }
-        setLoading(true);
-        try {
-            const res = await axios.post(BASE_URL + "/signup", {
-                firstName,
-                lastName,
-                emailId,
-                password
-            }, { withCredentials: true })
-
-            // Backend returns 200/201 but account is pending verification
-            navigate("/verify-otp", { state: { emailId } });
-        } catch (err) {
-            setError(err?.response?.data?.message || err?.response?.data || "Signup failed. Please try again.");
-        } finally {
-            setLoading(false);
-        }
-    }
-
-
+    const toggleMode = () => {
+        setIsLogin(!isLogin);
+        setError("");
+        reset(); // Clears all RHF states
+    };
 
     return (
         <div className='flex items-center justify-center min-h-[80vh] px-4 py-10 bg-base-100'>
@@ -101,41 +68,80 @@ const Login = () => {
 
                     <div className="flex border-b border-base-200 mb-6 font-semibold">
                         <button
+                            type="button"
                             className={`flex-1 py-3 transition-all duration-300 ${isLogin ? "text-primary border-b-4 border-primary" : "opacity-50 hover:opacity-100"}`}
-                            onClick={() => { setIsLogin(true); setError(""); }}
+                            onClick={() => !isLogin && toggleMode()}
                         >
                             LOGIN
                         </button>
                         <button
+                            type="button"
                             className={`flex-1 py-3 transition-all duration-300 ${!isLogin ? "text-primary border-b-4 border-primary" : "opacity-50 hover:opacity-100"}`}
-                            onClick={() => { setIsLogin(false); setError(""); }}
+                            onClick={() => isLogin && toggleMode()}
                         >
                             SIGN UP
                         </button>
                     </div>
 
-                    <div className="space-y-4">
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                         {!isLogin && (
                             <div className="flex flex-col sm:flex-row gap-4">
                                 <div className="flex-1">
-                                    <label className="label text-xs uppercase font-bold tracking-widest opacity-60">First Name</label>
-                                    <input type="text" className="input input-bordered w-full focus:input-primary" placeholder="John" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                                    <label htmlFor="firstName" className="label text-xs uppercase font-bold tracking-widest opacity-60">First Name</label>
+                                    <input
+                                        id="firstName"
+                                        type="text"
+                                        className={`input input-bordered w-full focus:input-primary ${errors.firstName && "input-error"}`}
+                                        placeholder="John"
+                                        {...register("firstName", { required: !isLogin && "First name is required" })}
+                                    />
+                                    {errors.firstName && <span className="text-[10px] text-error mt-1 font-bold">{errors.firstName.message}</span>}
                                 </div>
                                 <div className="flex-1">
-                                    <label className="label text-xs uppercase font-bold tracking-widest opacity-60">Last Name</label>
-                                    <input type="text" className="input input-bordered w-full focus:input-primary" placeholder="Doe" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                                    <label htmlFor="lastName" className="label text-xs uppercase font-bold tracking-widest opacity-60">Last Name</label>
+                                    <input
+                                        id="lastName"
+                                        type="text"
+                                        className={`input input-bordered w-full focus:input-primary ${errors.lastName && "input-error"}`}
+                                        placeholder="Doe"
+                                        {...register("lastName", { required: !isLogin && "Last name is required" })}
+                                    />
+                                    {errors.lastName && <span className="text-[10px] text-error mt-1 font-bold">{errors.lastName.message}</span>}
                                 </div>
                             </div>
                         )}
 
                         <div>
-                            <label className="label text-xs uppercase font-bold tracking-widest opacity-60">Email Address</label>
-                            <input type="email" className="input input-bordered w-full focus:input-primary" placeholder="developer@example.com" value={emailId} onChange={(e) => setEmail(e.target.value)} />
+                            <label htmlFor="emailId" className="label text-xs uppercase font-bold tracking-widest opacity-60">Email Address</label>
+                            <input
+                                id="emailId"
+                                type="email"
+                                className={`input input-bordered w-full focus:input-primary ${errors.emailId && "input-error"}`}
+                                placeholder="developer@example.com"
+                                {...register("emailId", {
+                                    required: "Email is required",
+                                    pattern: {
+                                        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                        message: "Invalid email address"
+                                    }
+                                })}
+                            />
+                            {errors.emailId && <span className="text-[10px] text-error mt-1 font-bold">{errors.emailId.message}</span>}
                         </div>
 
                         <div>
-                            <label className="label text-xs uppercase font-bold tracking-widest opacity-60">Password</label>
-                            <input type="password" className="input input-bordered w-full focus:input-primary" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
+                            <label htmlFor="password" className="label text-xs uppercase font-bold tracking-widest opacity-60">Password</label>
+                            <input
+                                id="password"
+                                type="password"
+                                className={`input input-bordered w-full focus:input-primary ${errors.password && "input-error"}`}
+                                placeholder="••••••••"
+                                {...register("password", {
+                                    required: "Password is required",
+                                    minLength: { value: 8, message: "Minimum 8 characters" }
+                                })}
+                            />
+                            {errors.password && <span className="text-[10px] text-error mt-1 font-bold">{errors.password.message}</span>}
                             {isLogin && (
                                 <div className="text-right mt-1">
                                     <button
@@ -148,41 +154,38 @@ const Login = () => {
                                 </div>
                             )}
                         </div>
-                    </div>
 
-                    {successMessage && (
-                        <div className="mt-6 bg-success/10 text-success text-sm p-3 rounded-lg border border-success/20 text-center font-bold">
-                            {successMessage}
+                        {successMessage && !error && (
+                            <div className="mt-6 bg-success/10 text-success text-sm p-3 rounded-lg border border-success/20 text-center font-bold">
+                                {successMessage}
+                            </div>
+                        )}
+
+                        {error && (
+                            <div className="mt-6 bg-error/10 text-error text-sm p-3 rounded-lg border border-error/20 text-center animate-pulse">
+                                {error}
+                            </div>
+                        )}
+
+                        <div className="card-actions mt-10">
+                            <button
+                                type="submit"
+                                className="btn btn-primary w-full text-lg shadow-lg hover:shadow-primary/20 transition-all duration-300 h-14"
+                                disabled={loading}
+                            >
+                                {loading && <span className="loading loading-spinner loading-sm mr-2"></span>}
+                                {loading ? (isLogin ? "Authenticating..." : "Creating Profile...") : (isLogin ? "Unlock Your Dashboard" : "Join the Community")}
+                            </button>
                         </div>
-                    )}
-
-
-                    {error && (
-                        <div className="mt-6 bg-error/10 text-error text-sm p-3 rounded-lg border border-error/20 text-center animate-pulse">
-                            {error}
-                        </div>
-                    )}
-
-                    <div className="card-actions mt-10">
-                        <button
-                            className="btn btn-primary w-full text-lg shadow-lg hover:shadow-primary/20 transition-all duration-300 h-14"
-                            onClick={isLogin ? handleLogin : handleSignUp}
-                            disabled={loading}
-                        >
-                            {loading && <span className="loading loading-spinner loading-sm mr-2"></span>}
-                            {loading ? (isLogin ? "Authenticating..." : "Creating Profile...") : (isLogin ? "Unlock Your Dashboard" : "Join the Community")}
-                        </button>
-                    </div>
-
-
-
+                    </form>
 
                     <div className="text-center mt-6">
                         <p className='text-sm opacity-60'>
                             {isLogin ? "New here?" : "Already a member?"}
                             <button
+                                type="button"
                                 className="ml-2 text-primary font-bold hover:underline"
-                                onClick={() => { setIsLogin(!isLogin); setError(""); }}
+                                onClick={toggleMode}
                             >
                                 {isLogin ? "Create an account" : "Log in now"}
                             </button>

@@ -1,32 +1,12 @@
-import React, { useEffect, useState } from 'react'
-import axios from 'axios'
-import { BASE_URL } from '../utils/constant'
-import { useDispatch, useSelector } from 'react-redux'
-import { addConnections } from '../utils/connectionSlice'
+import React from 'react'
+import { useGetConnectionsQuery } from '../utils/apiSlice'
 import { Link } from "react-router-dom";
 
 const Connections = () => {
-    const dispatch = useDispatch();
-    const connections = useSelector((store) => store.connections);
-    const [loading, setLoading] = useState(!connections);
+    const { data, isLoading } = useGetConnectionsQuery();
+    const connections = data?.data;
 
-    const fetchConnections = async () => {
-        try {
-            setLoading(true);
-            const res = await axios.get(BASE_URL + "/user/connections", { withCredentials: true })
-            dispatch(addConnections(res?.data?.data));
-        } catch (err) {
-            console.error(err.response?.data || err.message)
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    useEffect(() => {
-        fetchConnections();
-    }, []);
-
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="max-w-6xl mx-auto my-10 px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3, 4, 5, 6].map(i => (
@@ -67,7 +47,7 @@ const Connections = () => {
             {/* Grid display with 3 columns on large screens to fill empty space */}
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 xl:gap-8'>
                 {connections.map((connection) => {
-                    const { _id, firstName, lastName, age, gender, about, photoUrl } = connection;
+                    const { _id, firstName, lastName, age, gender, about, photoUrl, skills } = connection;
 
                     return (
                         <div
@@ -81,23 +61,32 @@ const Connections = () => {
                                 <div className="relative group/photo">
                                     <img
                                         alt="profile"
-                                        className="rounded-3xl w-24 h-24 md:w-32 md:h-32 object-cover ring-4 ring-base-100 group-hover:ring-primary/40 transition-all duration-700 shadow-xl"
+                                        className="rounded-3xl w-20 h-20 md:w-24 md:h-24 object-cover ring-4 ring-base-100 group-hover:ring-primary/40 transition-all duration-700 shadow-xl"
                                         src={photoUrl || "/default-avatar.png"}
                                     />
-                                    <div className="absolute bottom-2 right-2 w-6 h-6 bg-success border-4 border-base-300 rounded-full shadow-lg"></div>
+                                    <div className="absolute bottom-2 right-2 w-4 h-4 bg-success border-2 border-base-300 rounded-full shadow-lg"></div>
                                 </div>
 
                                 <div className="w-full">
                                     <h2 className="font-black text-xl md:text-2xl tracking-tighter text-base-content truncate">
                                         {firstName} {lastName}
                                     </h2>
-                                    <div className="flex items-center justify-center gap-2 mt-1 mb-3">
+                                    <div className="flex items-center justify-center gap-2 mt-1 mb-2">
                                         <span className="text-[10px] font-black uppercase tracking-widest opacity-40 px-2 py-0.5 bg-base-100 rounded-md border border-base-200">{gender}</span>
                                         {age && <span className="text-[10px] font-black uppercase tracking-widest opacity-40 px-2 py-0.5 bg-base-100 rounded-md border border-base-200">{age} Years</span>}
                                     </div>
-                                    <p className="text-xs md:text-sm line-clamp-2 opacity-60 italic px-2">
+                                    <p className="text-xs line-clamp-2 opacity-60 italic px-2 mb-3">
                                         "{about || "Saying hello to the world!"}"
                                     </p>
+                                    {/* Skills for connection cards */}
+                                    {skills && skills.length > 0 && (
+                                        <div className="flex flex-wrap justify-center gap-1.5 mt-2">
+                                            {skills.slice(0, 3).map((skill, i) => (
+                                                <span key={i} className="badge badge-ghost badge-sm text-[8px] font-black uppercase tracking-tighter py-2 border-base-200">{skill}</span>
+                                            ))}
+                                            {skills.length > 3 && <span className="text-[10px] opacity-30 font-black">+{skills.length - 3}</span>}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

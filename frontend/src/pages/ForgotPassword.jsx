@@ -2,19 +2,22 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { BASE_URL } from '../utils/constant';
 import { Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
 
 const ForgotPassword = () => {
-    const [emailId, setEmailId] = useState('');
     const [status, setStatus] = useState({ type: '', message: '' });
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const { register, handleSubmit, formState: { errors } } = useForm({
+        defaultValues: { emailId: '' }
+    });
+
+    const onSubmit = async (data) => {
         setLoading(true);
         setStatus({ type: '', message: '' });
 
         try {
-            await axios.post(`${BASE_URL}/forgot-password`, { emailId });
+            await axios.post(`${BASE_URL}/forgot-password`, { emailId: data.emailId });
             setStatus({ type: 'success', message: 'A reset link has been sent to your email! Link expires in 15 mins.' });
         } catch (err) {
             setStatus({ type: 'error', message: err.response?.data?.message || 'Something went wrong. Please check your email.' });
@@ -35,17 +38,23 @@ const ForgotPassword = () => {
                         Enter your registered email address below, and we'll dispatch a secure recovery link to your inbox.
                     </p>
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         <div>
-                            <label className="label text-[10px] font-black uppercase tracking-widest opacity-40">Email Address</label>
+                            <label htmlFor="emailId" className="label text-[10px] font-black uppercase tracking-widest opacity-40">Email Address</label>
                             <input
+                                id="emailId"
                                 type="email"
-                                required
-                                value={emailId}
-                                onChange={(e) => setEmailId(e.target.value)}
-                                className="input input-bordered w-full h-14 rounded-2xl focus:input-primary bg-base-100/50 border-base-200 text-base font-medium transition-all"
+                                className={`input input-bordered w-full h-14 rounded-2xl focus:input-primary bg-base-100/50 border-base-200 text-base font-medium transition-all ${errors.emailId && "input-error"}`}
                                 placeholder="developer@example.com"
+                                {...register("emailId", {
+                                    required: "Email is required",
+                                    pattern: {
+                                        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                        message: "Invalid email address"
+                                    }
+                                })}
                             />
+                            {errors.emailId && <p className="text-[10px] text-error mt-1 font-bold">{errors.emailId.message}</p>}
                         </div>
 
                         {status.message && (
@@ -62,8 +71,6 @@ const ForgotPassword = () => {
                             {loading && <span className="loading loading-spinner loading-sm mr-2"></span>}
                             {loading ? 'Transmitting...' : 'Send Recovery Link'}
                         </button>
-
-
                     </form>
 
                     <div className="text-center mt-8">

@@ -1,45 +1,21 @@
-import axios from 'axios'
-import React, { useEffect, useState } from 'react'
-import { BASE_URL } from '../utils/constant'
-import { useDispatch, useSelector } from 'react-redux'
-import { addRequests, removeRequest } from '../utils/requestSlice'
+import React from 'react'
+import { useGetRequestsQuery, useReviewConnectionRequestMutation } from '../utils/apiSlice'
 import { Link } from 'react-router-dom'
 
 const Requests = () => {
-    const dispatch = useDispatch();
-    const requests = useSelector((store) => store.requests);
-    const [loading, setLoading] = useState(!requests);
+    const { data, isLoading } = useGetRequestsQuery();
+    const [reviewConnectionRequest] = useReviewConnectionRequestMutation();
+    const requests = data?.data;
 
-    const reviewRequest = async (status, _id) => {
+    const handleReview = async (status, requestId) => {
         try {
-            await axios.post(BASE_URL + "/request/review/" + status + "/" + _id, {}, {
-                withCredentials: true
-            })
-            dispatch(removeRequest(_id));
+            await reviewConnectionRequest({ status, requestId }).unwrap();
         } catch (err) {
             console.error(err.response?.data || err.message)
         }
     }
 
-    const fetchRequests = async () => {
-        try {
-            setLoading(true);
-            const res = await axios.get(BASE_URL + "/user/requests/received", {
-                withCredentials: true,
-            });
-            dispatch(addRequests(res?.data?.data))
-        } catch (error) {
-            console.error(error.response?.data || error.message)
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    useEffect(() => {
-        fetchRequests();
-    }, [])
-
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="max-w-4xl mx-auto my-10 px-4 space-y-6">
                 {[1, 2, 3].map(i => (
@@ -73,7 +49,7 @@ const Requests = () => {
 
             <div className='space-y-6'>
                 {requests.map((request) => {
-                    const { _id, firstName, lastName, age, gender, about, photoUrl } = request.fromUserId;
+                    const { _id, firstName, lastName, age, gender, about, photoUrl, skills } = request.fromUserId;
 
                     return (
                         <div
@@ -98,23 +74,32 @@ const Requests = () => {
                                         {age && <span className="opacity-20 text-[10px]">•</span>}
                                         {age && <span className="text-[10px] md:text-xs font-black uppercase tracking-widest opacity-40">{age} Years</span>}
                                     </div>
-                                    <p className="text-sm line-clamp-2 opacity-60 leading-relaxed italic">
+                                    <p className="text-sm line-clamp-2 opacity-60 leading-relaxed italic mb-3">
                                         "{about || "A developer waiting to introduce themselves..."}"
                                     </p>
+                                    {/* Skills for request cards */}
+                                    {skills && skills.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                            {skills.slice(0, 3).map((skill, i) => (
+                                                <span key={i} className="badge badge-secondary badge-outline badge-sm text-[8px] font-black uppercase tracking-tighter py-2 border-secondary/30">{skill}</span>
+                                            ))}
+                                            {skills.length > 3 && <span className="text-[10px] opacity-30 font-black">+{skills.length - 3}</span>}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
                             <div className='flex gap-3 w-full md:w-auto shrink-0'>
                                 <button
                                     className='btn btn-ghost hover:bg-error/10 hover:text-error rounded-2xl flex-1 md:flex-none h-14 px-8 font-black uppercase text-xs tracking-widest transition-colors'
-                                    onClick={() => reviewRequest("rejected", request._id)}
+                                    onClick={() => handleReview("rejected", request._id)}
                                 >
                                     Ignore
                                 </button>
 
                                 <button
                                     className='btn btn-secondary shadow-lg shadow-secondary/20 hover:shadow-secondary/40 rounded-2xl flex-1 md:flex-none h-14 px-8 font-black uppercase text-xs tracking-widest hover:-translate-y-1 active:scale-95 transition-all'
-                                    onClick={() => reviewRequest("accepted", request._id)}
+                                    onClick={() => handleReview("accepted", request._id)}
                                 >
                                     Accept
                                 </button>

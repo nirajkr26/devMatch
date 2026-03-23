@@ -1,38 +1,12 @@
-import axios from 'axios'
-import React, { useEffect, useState } from 'react'
-import { BASE_URL } from '../utils/constant'
-import { useDispatch, useSelector } from 'react-redux'
-import { addFeed } from '../utils/feedSlice'
+import React from 'react'
+import { useGetFeedQuery } from '../utils/apiSlice'
 import Card from '../components/Card'
 
 const Feed = () => {
-  const dispatch = useDispatch();
-  const feed = useSelector((store) => store.feed);
-  const [loading, setLoading] = useState(!feed);
+  const { data, isLoading, refetch } = useGetFeedQuery();
+  const feed = data?.data;
 
-  const getFeed = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get(BASE_URL + "/feed", {
-        withCredentials: true
-      })
-      dispatch(addFeed(res?.data?.data));
-    } catch (err) {
-      console.error(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    if (!feed || feed.length === 0) {
-      getFeed();
-    } else {
-      setLoading(false);
-    }
-  }, [])
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className='flex flex-col items-center justify-center min-h-[60vh] gap-6 animate-fadeIn'>
         <div className="card bg-base-300 w-full max-w-[380px] h-[600px] shadow-sm animate-pulse rounded-2xl flex flex-col overflow-hidden border border-base-200">
@@ -67,7 +41,7 @@ const Feed = () => {
           You've seen everyone around you for now. Take a break, grab a coffee, and check back later for new developers!
         </p>
         <button
-          onClick={getFeed}
+          onClick={() => refetch()}
           className="btn btn-primary btn-outline btn-lg mt-10 rounded-full border-2 hover:scale-105 transition-all shadow-xl px-12"
         >
           Refresh Feed

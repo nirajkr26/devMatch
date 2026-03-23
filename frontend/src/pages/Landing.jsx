@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { ArrowRightIcon } from '../utils/Icons';
 
 const Landing = () => {
     const user = useSelector((store) => store.user);
@@ -60,7 +61,7 @@ const Landing = () => {
                                 {user ? (
                                     <Link to="/feed" className="btn btn-primary btn-lg rounded-2xl shadow-2xl shadow-primary/30 h-16 px-10 group transition-all duration-300">
                                         Open Dashboard
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor font-bold"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                                        <ArrowRightIcon className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                                     </Link>
                                 ) : (
                                     <>
@@ -138,7 +139,7 @@ const Landing = () => {
                         </p>
                         <Link to="/login" state={{ signup: true }} className="btn btn-primary btn-lg rounded-2xl px-12 group">
                             Start for Free
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor font-bold"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                            <ArrowRightIcon className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                         </Link>
 
                         {/* Decorative floating dots */}

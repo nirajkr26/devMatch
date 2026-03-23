@@ -1,21 +1,15 @@
-import axios from 'axios'
 import React from 'react'
-import { BASE_URL } from '../utils/constant'
-import { removeUserFromFeed } from '../utils/feedSlice'
-import { useDispatch } from 'react-redux'
+import { useSendConnectionRequestMutation } from '../utils/apiSlice'
 
 const Card = ({ user, isPreview = false }) => {
-    const dispatch = useDispatch();
+    const [sendRequest] = useSendConnectionRequestMutation();
 
     if (!user) return null;
 
     const handleSendRequest = async (status, userId) => {
         if (isPreview) return; // Guard clause
         try {
-            await axios.post(BASE_URL + "/request/send/" + status + "/" + userId, {}, {
-                withCredentials: true
-            })
-            dispatch(removeUserFromFeed(userId))
+            await sendRequest({ status, userId }).unwrap();
         } catch (error) {
             console.error(error.response?.data || error.message)
         }
@@ -51,6 +45,22 @@ const Card = ({ user, isPreview = false }) => {
                     <p className="text-sm opacity-80 line-clamp-3 leading-relaxed mt-2 text-base-content/80">
                         {user.about || "This developer is keeping their bio a mystery... but they're ready to build!"}
                     </p>
+
+                    {/* Skills Badges */}
+                    {user?.skills && user?.skills.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-4 max-h-[100px] overflow-hidden">
+                            {user.skills.slice(0, 5).map((skill, index) => (
+                                <div key={index} className="badge badge-accent badge-outline font-extrabold uppercase text-[10px] tracking-wider py-2.5 px-3 border-accent/30 hover:bg-accent/10 transition-colors">
+                                    {skill}
+                                </div>
+                            ))}
+                            {user.skills.length > 5 && (
+                                <div className="badge badge-ghost font-black text-[10px] uppercase opacity-40">
+                                    +{user.skills.length - 5}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Actions */}
