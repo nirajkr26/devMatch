@@ -27,9 +27,13 @@
 - **Elite Badges**: Visual premium indicators for verified power users.
 
 ### 🔐 Security & Reliability
+- **Multi-Layered Rate Limiting**: Redis-backed protection against DDoS, brute-force (Auth), and email spam (OTP).
+- **Email OTP Verification**: Mandatory verification for new accounts using Nodemailer with branded templates.
+- **Secure Password Recovery**: Expirable reset links handled via Redis for maximum security.
 - **CORS Protection**: Strict cross-origin resource sharing policies.
 - **Session-Based Auth**: Secure authentication using cookies (`withCredentials: true`).
 - **Validation Layers**: Robust client-side and server-side input validation for all critical payloads.
+
 
 ---
 
@@ -45,9 +49,12 @@
 ### Backend
 - **Engine**: Node.js & Express.js
 - **Database**: MongoDB (Mongoose ODM)
+- **Cache & Security**: Upstash Redis (OTP storage & Speed-limiting)
 - **Real-Time**: Socket.io (Namespaced rooms for individual chats)
+- **Email**: Nodemailer (Gmail SMTP with App Passwords)
 - **Authentication**: JWT & Cookie-Parser
 - **Payments**: Razorpay Node SDK
+
 
 ---
 
@@ -93,12 +100,17 @@ frontend/src/
    Create a `.env` file in the `backend/` directory:
    ```env
    PORT=3000
-   MONGODB_URI=your_mongodb_uri
+   MONGO_URI=your_mongodb_uri
+   REDIS_URL=your_upstash_redis_url
    JWT_SECRET=your_jwt_secret
+   REDIS_URL=your_redis_url
+   EMAIL_USER=your_gmail@gmail.com
+   EMAIL_PASS=your_gmail_app_password
    RAZORPAY_KEY_ID=your_razorpay_id
    RAZORPAY_KEY_SECRET=your_razorpay_secret
    FRONTEND_URL=http://localhost:5173
    ```
+
 
 3. **Backend Setup**
    ```bash
@@ -123,9 +135,14 @@ frontend/src/
 ### 🔐 Authentication
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| **POST** | `/signup` | Register a new developer profile |
-| **POST** | `/login` | Authenticate and start session |
+| **POST** | `/signup` | Register - Triggers 6-digit OTP email |
+| **POST** | `/verify-otp` | Verify account or activate session |
+| **POST** | `/resend-otp` | Throttle-protected fresh OTP dispatch |
+| **POST** | `/login` | Authenticate (Includes auto-OTP if unverified) |
 | **POST** | `/logout` | Terminate session and clear cookies |
+| **POST** | `/forgot-password` | Initiate recovery with secure reset link |
+| **POST** | `/reset-password` | Update credentials via valid reset token |
+
 
 ### 👤 Profile Management
 | Method | Endpoint | Description |
@@ -153,6 +170,12 @@ frontend/src/
 | :--- | :--- | :--- |
 | **POST** | `/payment/create` | Initialize Razorpay order for Silver/Gold |
 | **POST** | `/payment/verify` | Server-side signature verification of payment |
+
+### 🏥 System Status
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| **GET** | `/health` | Live system and DB connectivity report |
+
 
 ---
 
