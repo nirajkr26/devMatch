@@ -13,6 +13,8 @@ const Login = () => {
     const [lastName, setLastName] = useState("");
     const [isLogin, setIsLogin] = useState(!location.state?.signup);
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const successMessage = location.state?.message;
@@ -32,6 +34,7 @@ const Login = () => {
             setError("Password must be at least 8 characters long");
             return;
         }
+        setLoading(true);
         try {
             const res = await axios.post(BASE_URL + "/login", {
                 emailId,
@@ -46,8 +49,11 @@ const Login = () => {
             } else {
                 setError(err?.response?.data?.message || err?.response?.data || "Invalid Credentials");
             }
+        } finally {
+            setLoading(false);
         }
     }
+
 
 
     const handleSignUp = async () => {
@@ -64,6 +70,7 @@ const Login = () => {
             setError("Password must be at least 8 characters long");
             return;
         }
+        setLoading(true);
         try {
             const res = await axios.post(BASE_URL + "/signup", {
                 firstName,
@@ -76,8 +83,11 @@ const Login = () => {
             navigate("/verify-otp", { state: { emailId } });
         } catch (err) {
             setError(err?.response?.data?.message || err?.response?.data || "Signup failed. Please try again.");
+        } finally {
+            setLoading(false);
         }
     }
+
 
 
     return (
@@ -155,12 +165,17 @@ const Login = () => {
 
                     <div className="card-actions mt-10">
                         <button
-                            className="btn btn-primary w-full text-lg shadow-lg hover:shadow-primary/20 transition-all duration-300"
+                            className="btn btn-primary w-full text-lg shadow-lg hover:shadow-primary/20 transition-all duration-300 h-14"
                             onClick={isLogin ? handleLogin : handleSignUp}
+                            disabled={loading}
                         >
-                            {isLogin ? "Unlock Your Dashboard" : "Join the Community"}
+                            {loading && <span className="loading loading-spinner loading-sm mr-2"></span>}
+                            {loading ? (isLogin ? "Authenticating..." : "Creating Profile...") : (isLogin ? "Unlock Your Dashboard" : "Join the Community")}
                         </button>
                     </div>
+
+
+
 
                     <div className="text-center mt-6">
                         <p className='text-sm opacity-60'>

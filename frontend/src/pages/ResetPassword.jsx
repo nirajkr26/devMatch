@@ -85,10 +85,13 @@ const ResetPassword = () => {
                         <button
                             type="submit"
                             disabled={loading || !newPassword}
-                            className={`btn btn-primary w-full rounded-2xl h-14 text-sm font-black uppercase tracking-widest shadow-xl shadow-primary/20 transition-all active:scale-95 ${loading && 'loading'}`}
+                            className="btn btn-primary w-full rounded-2xl h-14 text-sm font-black uppercase tracking-widest shadow-xl shadow-primary/20 transition-all active:scale-95"
                         >
+                            {loading && <span className="loading loading-spinner loading-sm mr-2"></span>}
                             {loading ? 'Securing...' : 'Establish Password'}
                         </button>
+
+
                     </form>
 
                     <div className="text-center mt-10">

@@ -57,10 +57,13 @@ const ForgotPassword = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className={`btn btn-primary w-full rounded-2xl h-14 text-sm font-black uppercase tracking-widest shadow-xl shadow-primary/20 transition-all active:scale-95 ${loading && 'loading'}`}
+                            className="btn btn-primary w-full rounded-2xl h-14 text-sm font-black uppercase tracking-widest shadow-xl shadow-primary/20 transition-all active:scale-95"
                         >
+                            {loading && <span className="loading loading-spinner loading-sm mr-2"></span>}
                             {loading ? 'Transmitting...' : 'Send Recovery Link'}
                         </button>
+
+
                     </form>
 
                     <div className="text-center mt-8">

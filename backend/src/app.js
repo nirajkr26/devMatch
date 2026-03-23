@@ -12,6 +12,10 @@ require("dotenv").config();
 
 const app = express();
 
+// Trust proxy for production (Render/Cloudflare)
+// This is required for express-rate-limit to work correctly behind a proxy
+app.set("trust proxy", 1);
+
 /** 
  * Standard Middlewares
  */
@@ -65,6 +69,15 @@ connectDB()
         app.use("/", paymentRouter);
         app.use("/", chatRouter);
 
+        // Global Error Handler (MUST be registered AFTER routes)
+        app.use((err, req, res, next) => {
+            res.header("Content-Type", "application/json");
+            const statusCode = err.status || 500;
+            res.status(statusCode).json({
+                message: err.message || "Internal Server Error"
+            });
+        });
+
         console.log("✅ Step 3: Routes & Limiters Registered");
 
         const PORT = process.env.PORT || 3000;
@@ -78,9 +91,3 @@ connectDB()
         process.exit(1);
     });
 
-/**
- * Global Error Handler
- */
-app.use((err, req, res, next) => {
-    res.status(err.status || 500).send(err.message || "Internal Server Error");
-});

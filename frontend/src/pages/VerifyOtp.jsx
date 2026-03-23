@@ -112,12 +112,14 @@ const VerifyOtp = () => {
                     )}
 
                     <button
-                        className={`btn btn-primary w-full rounded-2xl h-14 text-lg shadow-xl shadow-primary/20 ${loading && 'loading'}`}
+                        className="btn btn-primary w-full rounded-2xl h-14 text-lg shadow-xl shadow-primary/20"
                         onClick={handleVerify}
                         disabled={loading}
                     >
+                        {loading && <span className="loading loading-spinner loading-sm mr-2"></span>}
                         {loading ? 'Verifying...' : 'Verify Engine'}
                     </button>
+
 
                     <p className="mt-8 text-sm opacity-60 font-medium">
                         Didn't receive code?{' '}

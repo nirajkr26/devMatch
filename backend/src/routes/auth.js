@@ -94,7 +94,17 @@ const setupAuthRoutes = () => {
             const { emailId, password } = req.body;
             const user = await User.findOne({ emailId });
             if (!user) throw new Error("invalid credentials");
-            if (!user.isVerified) return res.status(403).json({ message: "Email not verified." });
+
+            if (!user.isVerified) {
+                // Auto-trigger new OTP for unverified users trying to login
+                const otp = crypto.randomInt(100000, 999999).toString();
+                await redisClient.set(emailId, otp, { EX: 600 });
+                const html = OTP_TEMPLATE(user.firstName, otp);
+                await sendEmail(emailId, "Verify Your devMatch Account", html);
+
+                return res.status(403).json({ message: "Email not verified. A fresh OTP has been sent to your inbox." });
+            }
+
 
             const isValid = await user.validatePassword(password);
             if (isValid) {
