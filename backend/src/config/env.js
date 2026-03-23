@@ -11,6 +11,9 @@ const requiredEnvs = [
     "JWT_SECRET",
     "RAZORPAY_KEY_ID",
     "RAZORPAY_KEY_SECRET",
+    "REDIS_URL",
+    "EMAIL_USER",
+    "EMAIL_PASS",
     "PORT"
 ];
 

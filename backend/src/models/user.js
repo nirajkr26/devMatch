@@ -72,6 +72,10 @@ const userSchema = new mongoose.Schema({
     },
     skills: {
         type: [String],
+    },
+    isVerified: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true, // Auto-manage createdAt and updatedAt fields

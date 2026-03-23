@@ -4,79 +4,134 @@ const bcrypt = require("bcrypt")
 const { validateSignUpData } = require("../utils/validation")
 const User = require("../models/user");
 const cookieConfig = require("../config/cookieConfig");
+const { redisClient } = require("../config/redis");
+const { createAuthLimiter, createOtpLimiter } = require("../config/rateLimiter");
+const sendEmail = require("../utils/sendEmail");
+const { OTP_TEMPLATE, PASSWORD_RESET_TEMPLATE } = require("../utils/emailTemplates");
+const crypto = require("crypto");
+const validator = require("validator");
 
 /**
- * Auth routes for user signup, login, and logout.
+ * Higher Order Route Factory
+ * This allows us to inject the rate limiters ONLY when the server starts,
+ * avoiding the 'ClientClosedError' at import time.
  */
 
-/**
- * Handle user signup.
- * Validates request data, hashes password, saves user, and issues a JWT token.
- */
-router.post("/signup", async (req, res, next) => {
-    try {
-        // Validate input data (names, email format, password strength)
-        validateSignUpData(req);
-        const { firstName, lastName, age, gender, emailId, password } = req.body;
+const setupAuthRoutes = () => {
+    const authLimiter = createAuthLimiter();
+    const otpLimiter = createOtpLimiter();
 
-        // Create new user instance (password is hashed in User model's pre-save middleware)
-        const user = new User({
-            firstName, lastName, age, gender, emailId, password
-        });
+    router.post("/signup", authLimiter, async (req, res, next) => {
+        try {
+            validateSignUpData(req);
+            const { firstName, lastName, age, gender, emailId, password } = req.body;
+            const existingUser = await User.findOne({ emailId });
+            if (existingUser) return res.status(400).json({ message: "User already exists" });
 
-        const savedUser = await user.save();
+            const otp = crypto.randomInt(100000, 999999).toString();
+            await redisClient.set(emailId, otp, { EX: 600 });
 
-        // Generate and set authentication token
-        const token = await savedUser.getJWT();
-        res.cookie("token", token, cookieConfig);
-        res.send(savedUser)
-    } catch (err) {
-        next(err);
-    }
-})
+            // Clean Template Implementation
+            const html = OTP_TEMPLATE(firstName, otp);
+            await sendEmail(emailId, "Verify Your devMatch Account", html);
 
-/**
- * Handle user login.
- * Verifies credentials and issues a JWT token in a cookie.
- */
-router.post("/login", async (req, res, next) => {
-    try {
-        const { emailId, password } = req.body;
+            const user = new User({ firstName, lastName, age, gender, emailId, password, isVerified: false });
+            await user.save();
+            res.status(200).json({ message: "OTP sent to your email." });
+        } catch (err) { next(err); }
+    });
 
-        // Find user by email
-        const user = await User.findOne({ emailId: emailId });
+    router.post("/verify-otp", authLimiter, async (req, res, next) => {
+        try {
+            const { emailId, otp } = req.body;
+            const storedOtp = await redisClient.get(emailId);
+            if (!storedOtp || storedOtp !== otp) return res.status(400).json({ message: "Invalid or expired OTP" });
 
-        if (!user) {
-            throw new Error("invalid credentials")
-        }
+            const user = await User.findOne({ emailId });
+            if (!user) return res.status(404).json({ message: "User not found" });
 
-        // Check if the provided password matches the stored hash
-        const isValidPassword = await user.validatePassword(password);
+            user.isVerified = true;
+            await user.save();
+            await redisClient.del(emailId);
 
-        if (isValidPassword) {
-            // Re-issue JWT token on successful login
             const token = await user.getJWT();
             res.cookie("token", token, cookieConfig);
-            res.send(user)
-        } else {
-            throw new Error("invalid credentials")
-        }
-    } catch (err) {
-        next(err);
-    }
-})
-
-/**
- * Handle user logout.
- * Clears the authentication token by expiring the cookie.
- */
-router.post("/logout", async (req, res, next) => {
-    // Overwrite existing token with null and expire it immediately
-    res.cookie("token", null, {
-        ...cookieConfig,
-        expires: new Date(Date.now()),
+            res.status(200).json({ message: "Verified successfully", user });
+        } catch (err) { next(err); }
     });
-    res.send("Logout Successful");
-})
 
-module.exports = router;
+    router.post("/resend-otp", otpLimiter, async (req, res, next) => {
+        try {
+            const { emailId } = req.body;
+            const user = await User.findOne({ emailId });
+            if (!user || user.isVerified) return res.status(400).json({ message: "Invalid request" });
+
+            const otp = crypto.randomInt(100000, 999999).toString();
+            await redisClient.set(emailId, otp, { EX: 600 });
+
+            const html = OTP_TEMPLATE(user.firstName, otp);
+            await sendEmail(emailId, "New OTP - devMatch", html);
+            res.status(200).json({ message: "New OTP sent" });
+        } catch (err) { next(err); }
+    });
+
+    router.post("/login", authLimiter, async (req, res, next) => {
+        try {
+            const { emailId, password } = req.body;
+            const user = await User.findOne({ emailId });
+            if (!user) throw new Error("invalid credentials");
+            if (!user.isVerified) return res.status(403).json({ message: "Email not verified." });
+
+            const isValid = await user.validatePassword(password);
+            if (isValid) {
+                const token = await user.getJWT();
+                res.cookie("token", token, cookieConfig).send(user);
+            } else throw new Error("invalid credentials");
+        } catch (err) { next(err); }
+    });
+
+    router.post("/logout", (req, res) => {
+        res.cookie("token", null, { ...cookieConfig, expires: new Date(0) }).send("Logout Successful");
+    });
+
+    router.post("/forgot-password", otpLimiter, async (req, res, next) => {
+        try {
+            const { emailId } = req.body;
+            const user = await User.findOne({ emailId });
+            if (!user) return res.status(404).json({ message: "Email not registered" });
+
+            const resetToken = crypto.randomBytes(32).toString("hex");
+            await redisClient.set(`reset:${resetToken}`, emailId, { EX: 900 });
+
+            const link = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+            const html = PASSWORD_RESET_TEMPLATE(link);
+            await sendEmail(emailId, "Password Reset Request - devMatch", html);
+            res.status(200).json({ message: "Reset link sent" });
+        } catch (err) { next(err); }
+    });
+
+    router.post("/reset-password", async (req, res, next) => {
+        try {
+            const { token, newPassword } = req.body;
+            
+            // Strength Check
+            if (!validator.isStrongPassword(newPassword)) {
+                return res.status(400).json({ message: "Password is too weak. Must include 8 chars, uppercase, number, and symbol." });
+            }
+
+            const emailId = await redisClient.get(`reset:${token}`);
+            if (!emailId) return res.status(400).json({ message: "Expired link" });
+
+            const user = await User.findOne({ emailId });
+
+            user.password = newPassword;
+            await user.save();
+            await redisClient.del(`reset:${token}`);
+            res.status(200).json({ message: "Password updated" });
+        } catch (err) { next(err); }
+    });
+
+    return router;
+};
+
+module.exports = setupAuthRoutes;
