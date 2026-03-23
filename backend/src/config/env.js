@@ -12,8 +12,7 @@ const requiredEnvs = [
     "RAZORPAY_KEY_ID",
     "RAZORPAY_KEY_SECRET",
     "REDIS_URL",
-    "EMAIL_USER",
-    "EMAIL_PASS",
+    "RESEND_API_KEY",
     "PORT"
 ];
 

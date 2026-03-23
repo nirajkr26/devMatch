@@ -28,7 +28,8 @@
 
 ### 🔐 Security & Reliability
 - **Multi-Layered Rate Limiting**: Redis-backed protection against DDoS, brute-force (Auth), and email spam (OTP).
-- **Email OTP Verification**: Mandatory verification for new accounts using Nodemailer with branded templates.
+- **Resend SDK Integration**: Scalable, high-performance email delivery using the Resend SDK (HTTP-based) for maximum reliability in cloud environments.
+- **Auto-Triggered Login OTP**: Smart authentication flow that automatically sends a fresh OTP if an unverified user attempts to log in.
 - **Secure Password Recovery**: Expirable reset links handled via Redis for maximum security.
 - **CORS Protection**: Strict cross-origin resource sharing policies.
 - **Session-Based Auth**: Secure authentication using cookies (`withCredentials: true`).
@@ -51,7 +52,8 @@
 - **Database**: MongoDB (Mongoose ODM)
 - **Cache & Security**: Upstash Redis (OTP storage & Speed-limiting)
 - **Real-Time**: Socket.io (Namespaced rooms for individual chats)
-- **Email**: Nodemailer (Gmail SMTP with App Passwords)
+- **Email**: Resend (HTTP SDK for transactional delivery)
+- **Verified Domain**: `support.nirajkr26.in` (Professional branding)
 - **Authentication**: JWT & Cookie-Parser
 - **Payments**: Razorpay Node SDK
 
@@ -101,14 +103,12 @@ frontend/src/
    ```env
    PORT=3000
    MONGO_URI=your_mongodb_uri
-   REDIS_URL=your_upstash_redis_url
-   JWT_SECRET=your_jwt_secret
    REDIS_URL=your_redis_url
-   EMAIL_USER=your_gmail@gmail.com
-   EMAIL_PASS=your_gmail_app_password
+   JWT_SECRET=your_jwt_secret
+   RESEND_API_KEY=your_resend_api_key
    RAZORPAY_KEY_ID=your_razorpay_id
    RAZORPAY_KEY_SECRET=your_razorpay_secret
-   FRONTEND_URL=http://localhost:5173
+   FRONTEND_URL=your_frontend_url
    ```
 
 
@@ -138,7 +138,7 @@ frontend/src/
 | **POST** | `/signup` | Register - Triggers 6-digit OTP email |
 | **POST** | `/verify-otp` | Verify account or activate session |
 | **POST** | `/resend-otp` | Throttle-protected fresh OTP dispatch |
-| **POST** | `/login` | Authenticate (Includes auto-OTP if unverified) |
+| **POST** | `/login` | Authenticate (Smart Flow: triggers new OTP if unverified) |
 | **POST** | `/logout` | Terminate session and clear cookies |
 | **POST** | `/forgot-password` | Initiate recovery with secure reset link |
 | **POST** | `/reset-password` | Update credentials via valid reset token |
