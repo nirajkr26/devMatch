@@ -26,9 +26,23 @@ const setupAuthRoutes = () => {
             validateSignUpData(req);
             const { firstName, lastName, age, gender, emailId, password } = req.body;
             const existingUser = await User.findOne({ emailId });
-            if (existingUser) return res.status(400).json({ message: "User already exists" });
+            if (existingUser) {
+                if (existingUser.isVerified) {
+                    return res.status(400).json({ message: "User already exists" });
+                } else {
+                    // Smart Scenario: User exists but is unverified (perhaps OTP expired)
+                    const otp = crypto.randomInt(100000, 999999).toString();
+                    await redisClient.set(emailId, otp, { EX: 600 });
+
+                    const html = OTP_TEMPLATE(existingUser.firstName, otp);
+                    await sendEmail(emailId, "Verify Your devMatch Account", html);
+
+                    return res.status(200).json({ message: "Account pending verification. A fresh OTP has been sent." });
+                }
+            }
 
             const otp = crypto.randomInt(100000, 999999).toString();
+
             await redisClient.set(emailId, otp, { EX: 600 });
 
             // Clean Template Implementation
@@ -113,7 +127,7 @@ const setupAuthRoutes = () => {
     router.post("/reset-password", async (req, res, next) => {
         try {
             const { token, newPassword } = req.body;
-            
+
             // Strength Check
             if (!validator.isStrongPassword(newPassword)) {
                 return res.status(400).json({ message: "Password is too weak. Must include 8 chars, uppercase, number, and symbol." });

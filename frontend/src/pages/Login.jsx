@@ -15,6 +15,8 @@ const Login = () => {
     const [error, setError] = useState("");
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const successMessage = location.state?.message;
+
 
     const handleLogin = async () => {
         if (!emailId || !password) {
@@ -38,9 +40,15 @@ const Login = () => {
             dispatch(addUser(res.data));
             navigate("/feed")
         } catch (err) {
-            setError(err?.response?.data || "Invalid Credentials");
+            if (err?.response?.status === 403) {
+                // If unverified, send them to verify page
+                navigate("/verify-otp", { state: { emailId } });
+            } else {
+                setError(err?.response?.data?.message || err?.response?.data || "Invalid Credentials");
+            }
         }
     }
+
 
     const handleSignUp = async () => {
         if (!firstName || !lastName || !emailId || !password) {
@@ -64,12 +72,13 @@ const Login = () => {
                 password
             }, { withCredentials: true })
 
-            dispatch(addUser(res.data));
-            navigate("/profile")
+            // Backend returns 200/201 but account is pending verification
+            navigate("/verify-otp", { state: { emailId } });
         } catch (err) {
-            setError(err?.response?.data || "Signup failed. Please try again.");
+            setError(err?.response?.data?.message || err?.response?.data || "Signup failed. Please try again.");
         }
     }
+
 
     return (
         <div className='flex items-center justify-center min-h-[80vh] px-4 py-10 bg-base-100'>
@@ -117,8 +126,26 @@ const Login = () => {
                         <div>
                             <label className="label text-xs uppercase font-bold tracking-widest opacity-60">Password</label>
                             <input type="password" className="input input-bordered w-full focus:input-primary" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
+                            {isLogin && (
+                                <div className="text-right mt-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => navigate("/forgot-password")}
+                                        className="text-[10px] text-primary hover:underline font-bold uppercase tracking-wider"
+                                    >
+                                        Forgot Password?
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
+
+                    {successMessage && (
+                        <div className="mt-6 bg-success/10 text-success text-sm p-3 rounded-lg border border-success/20 text-center font-bold">
+                            {successMessage}
+                        </div>
+                    )}
+
 
                     {error && (
                         <div className="mt-6 bg-error/10 text-error text-sm p-3 rounded-lg border border-error/20 text-center animate-pulse">

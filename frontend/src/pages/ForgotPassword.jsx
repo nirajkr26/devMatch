@@ -1,0 +1,77 @@
+import React, { useState } from 'react';
+import axios from 'axios';
+import { BASE_URL } from '../utils/constant';
+import { Link } from 'react-router-dom';
+
+const ForgotPassword = () => {
+    const [emailId, setEmailId] = useState('');
+    const [status, setStatus] = useState({ type: '', message: '' });
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setStatus({ type: '', message: '' });
+
+        try {
+            await axios.post(`${BASE_URL}/forgot-password`, { emailId });
+            setStatus({ type: 'success', message: 'A reset link has been sent to your email! Link expires in 15 mins.' });
+        } catch (err) {
+            setStatus({ type: 'error', message: err.response?.data?.message || 'Something went wrong. Please check your email.' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="min-h-[80vh] flex items-center justify-center px-4 bg-base-100">
+            <div className="card w-full max-w-md bg-base-300 shadow-2xl border border-base-200">
+                <div className="card-body p-10">
+                    <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-3xl mb-8 group transition-transform duration-500 hover:scale-110">
+                        🔑
+                    </div>
+                    <h2 className="card-title text-4xl font-black uppercase tracking-tighter mb-4">Reset Hub</h2>
+                    <p className="text-sm opacity-60 mb-10 font-medium leading-relaxed">
+                        Enter your registered email address below, and we'll dispatch a secure recovery link to your inbox.
+                    </p>
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div>
+                            <label className="label text-[10px] font-black uppercase tracking-widest opacity-40">Email Address</label>
+                            <input
+                                type="email"
+                                required
+                                value={emailId}
+                                onChange={(e) => setEmailId(e.target.value)}
+                                className="input input-bordered w-full h-14 rounded-2xl focus:input-primary bg-base-100/50 border-base-200 text-base font-medium transition-all"
+                                placeholder="developer@example.com"
+                            />
+                        </div>
+
+                        {status.message && (
+                            <div className={`text-sm p-4 rounded-xl border font-bold animate-fadeIn ${status.type === 'success' ? 'bg-success/10 text-success border-success/20' : 'bg-error/10 text-error border-error/20'}`}>
+                                {status.message}
+                            </div>
+                        )}
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className={`btn btn-primary w-full rounded-2xl h-14 text-sm font-black uppercase tracking-widest shadow-xl shadow-primary/20 transition-all active:scale-95 ${loading && 'loading'}`}
+                        >
+                            {loading ? 'Transmitting...' : 'Send Recovery Link'}
+                        </button>
+                    </form>
+
+                    <div className="text-center mt-8">
+                        <Link to="/login" className="text-sm font-black uppercase tracking-widest opacity-40 hover:opacity-100 hover:text-primary transition-all">
+                            &larr; Return to Central Hall
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default ForgotPassword;

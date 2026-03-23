@@ -20,9 +20,11 @@ const Body = () => {
                 navigate("/feed");
             }
         } catch (err) {
-            if (err.status === 401 && window.location.pathname !== "/login" && window.location.pathname !== "/") {
+            const publicPaths = ["/login", "/", "/verify-otp", "/forgot-password", "/reset-password"];
+            if (err.status === 401 && !publicPaths.includes(window.location.pathname)) {
                 navigate("/login");
             }
+
             console.error(err);
         }
     }

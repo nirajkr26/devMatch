@@ -9,6 +9,10 @@ import Connections from "./pages/Connections";
 import Requests from "./pages/Requests";
 import Premium from "./pages/Premium";
 import Chat from "./pages/Chat";
+import VerifyOtp from "./pages/VerifyOtp";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+
 
 const App = () => {
   return (
@@ -23,7 +27,11 @@ const App = () => {
           <Route path="/requests" element={<Requests />} />
           <Route path="/premium" element={<Premium />} />
           <Route path="/chat/:targetUserId" element={<Chat />} />
+          <Route path="/verify-otp" element={<VerifyOtp />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="*" element={<PageNotFound />} />
+
         </Route>
       </Routes>
     </>
