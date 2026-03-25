@@ -13,6 +13,9 @@ const requiredEnvs = [
     "RAZORPAY_KEY_SECRET",
     "REDIS_URL",
     "RESEND_API_KEY",
+    "CLOUDINARY_CLOUD_NAME",
+    "CLOUDINARY_API_KEY",
+    "CLOUDINARY_API_SECRET",
     "PORT"
 ];
 

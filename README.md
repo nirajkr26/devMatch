@@ -34,6 +34,8 @@
 - **CORS Protection**: Strict cross-origin resource sharing policies.
 - **Session-Based Auth**: Secure authentication using cookies (`withCredentials: true`).
 - **Validation Layers**: Robust client-side and server-side input validation for all critical payloads.
+- **Cloudinary Integration**: Fully automated, high-performance cloud storage for developer profile photos.
+- **Client-Side Image Compression**: Smart frontend compression to max 300KB using `browser-image-compression` to optimize bandwidth and storage.
 
 
 ---
@@ -46,6 +48,7 @@
 - **Styling**: Tailwind CSS & DaisyUI (Custom Premium Theme)
 - **Icons**: Lucide React / SVG Icons
 - **HTTP Client**: Axios (Interceptors for credentials)
+- **Image Processing**: browser-image-compression (Smart max 300KB client-side optimization)
 
 ### Backend
 - **Engine**: Node.js & Express.js
@@ -56,6 +59,8 @@
 - **Verified Domain**: `support.nirajkr26.in` (Professional branding)
 - **Authentication**: JWT & Cookie-Parser
 - **Payments**: Razorpay Node SDK
+- **Cloud Storage**: Cloudinary (Image management & transformations)
+- **File Uploads**: Multer (Memory-buffer optimized processing)
 
 
 ---
@@ -67,7 +72,8 @@
 backend/src/
 ├── models/         # Mongoose Schemas (User, Chat, ConnectionRequest, Payment)
 ├── routes/         # Express API Endpoints (Auth, Profile, Requests, Chat, Payment)
-├── config/         # Database & Socket configurations
+├── config/         # Database, Socket, and Cloudinary configurations
+├── middlewares/    # Custom auth, validation, and Multer file upload filters
 ├── utils/          # Validation, socket.js logic, and constants
 └── app.js          # Main entry point
 ```
@@ -109,6 +115,9 @@ frontend/src/
    RAZORPAY_KEY_ID=your_razorpay_id
    RAZORPAY_KEY_SECRET=your_razorpay_secret
    FRONTEND_URL=your_frontend_url
+   CLOUDINARY_CLOUD_NAME=your_cloudinary_name
+   CLOUDINARY_API_KEY=your_cloudinary_api_key
+   CLOUDINARY_API_SECRET=your_cloudinary_api_secret
    ```
 
 
@@ -149,6 +158,7 @@ frontend/src/
 | :--- | :--- | :--- |
 | **GET** | `/profile/view` | Fetch current user's profile data |
 | **PATCH** | `/profile/edit` | Update profile fields (bio, photo, skills) |
+| **POST** | `/profile/upload` | Upload & compress profile photo to Cloudinary |
 | **PATCH** | `/profile/password` | Securely update account password |
 
 ### 🤝 Connection System

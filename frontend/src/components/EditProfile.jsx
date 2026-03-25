@@ -7,13 +7,15 @@ import { BASE_URL } from '../utils/constant';
 import { addUser } from '../utils/userSlice';
 import { CheckIcon } from '../utils/Icons';
 import { useForm } from "react-hook-form";
+import imageCompression from 'browser-image-compression';
 
 const EditProfile = ({ user }) => {
     const dispatch = useDispatch();
     const [error, setError] = useState(null);
     const [showToast, setShowToast] = useState(false);
+    const [uploading, setUploading] = useState(false);
 
-    const { register, handleSubmit, watch, formState: { errors } } = useForm({
+    const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm({
         defaultValues: {
             firstName: user.firstName,
             lastName: user.lastName,
@@ -27,6 +29,44 @@ const EditProfile = ({ user }) => {
 
     // Watch all fields for the live preview
     const watchedFields = watch();
+
+    const handleImageUpload = async (event) => {
+        const imageFile = event.target.files[0];
+        if (!imageFile) return;
+
+        setUploading(true);
+        setError(null);
+
+        try {
+            // Compression options
+            const options = {
+                maxSizeMB: 0.3, // 300KB
+                maxWidthOrHeight: 1024,
+                useWebWorker: true,
+            };
+
+            const compressedFile = await imageCompression(imageFile, options);
+
+            // Prepare form data for upload
+            const formData = new FormData();
+            formData.append('profilePhoto', compressedFile);
+
+            const res = await axios.post(BASE_URL + "/profile/upload", formData, {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
+            // Update the form field with the new URL
+            setValue("photoUrl", res.data.photoUrl, { shouldValidate: true });
+
+        } catch (err) {
+            setError(err?.response?.data?.message || "Failed to upload image. Please try again.");
+        } finally {
+            setUploading(false);
+        }
+    };
 
     const onSubmit = async (data) => {
         setError(null);
@@ -150,16 +190,40 @@ const EditProfile = ({ user }) => {
                         </div>
 
                         <div className="form-control w-full mt-6">
-                            <label htmlFor="photoUrl" className="label py-1 mb-1">
-                                <span className="label-text text-xs font-black uppercase opacity-60 tracking-wider">Photo URL</span>
+                            <label className="label py-1 mb-1">
+                                <span className="label-text text-xs font-black uppercase opacity-60 tracking-wider">Profile Photo</span>
                             </label>
-                            <input
-                                id="photoUrl"
-                                type="url"
-                                className={`input input-bordered w-full h-14 rounded-2xl focus:input-primary bg-base-200/50 border-base-200 text-base font-medium transition-all ${errors.photoUrl && "input-error"}`}
-                                placeholder="https://example.com/avatar.jpg"
-                                {...register("photoUrl", { required: "Photo URL is required" })}
-                            />
+                            
+                            <div className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-base-200/50 rounded-3xl border border-dashed border-base-content/20 hover:border-primary/50 transition-all">
+                                <div className="avatar">
+                                    <div className="w-24 h-24 rounded-2xl ring ring-primary ring-offset-base-100 ring-offset-2 overflow-hidden bg-base-300">
+                                        <img 
+                                            src={watchedFields.photoUrl || "https://lh3.googleusercontent.com/gg-dl/AOI_d_9lNh-NJt7RMMQ_sdGcdX0SjSAZGuPmfGNV__K62GBYOBoCYFPh9fkNhQSoMgVfkKo7tdygxHK6O5PL3wHWd4JOidzBri5W0xsj1UXGjkorqn9wUiBwWYKKATss6Evw0RKtyAv5eU791ezPxkAjhv16qa2XwO3231yqpAqNyKfXuGVM=s1024-rj"} 
+                                            alt="Profile Preview" 
+                                            className="object-cover"
+                                        />
+                                    </div>
+                                </div>
+                                
+                                <div className="flex-1 w-full space-y-3">
+                                    <div className="flex flex-col gap-2">
+                                        <input
+                                            id="photoUpload"
+                                            type="file"
+                                            accept="image/*"
+                                            className="file-input file-input-bordered file-input-primary w-full h-12 rounded-xl text-sm"
+                                            onChange={handleImageUpload}
+                                            disabled={uploading}
+                                        />
+                                        <p className="text-[10px] opacity-50 font-bold uppercase tracking-wider pl-1">
+                                            {uploading ? "Uploading to Cloudinary..." : "Max size 300KB • JPG, PNG, WEBP"}
+                                        </p>
+                                    </div>
+                                    
+                                    {/* Keep photoUrl as hidden register to maintain form state */}
+                                    <input type="hidden" {...register("photoUrl", { required: "Profile photo is required" })} />
+                                </div>
+                            </div>
                             {errors.photoUrl && <span className="text-[10px] text-error mt-1 font-bold">{errors.photoUrl.message}</span>}
                         </div>
 

@@ -5,6 +5,8 @@ const { validateProfileEditData } = require("../utils/validation");
 const User = require("../models/user");
 const validator = require("validator")
 const bcrypt = require("bcrypt")
+const upload = require("../middlewares/multer")
+const cloudinary = require("../config/cloudinary")
 
 /**
  * Route to view the authenticated user's own profile.
@@ -42,6 +44,40 @@ router.patch("/profile/edit", userAuth, async (req, res, next) => {
             message: `${loggedUser.firstName} ! your profile updated successfully`,
             data: loggedUser
         })
+
+    } catch (err) {
+        next(err);
+    }
+})
+
+/**
+ * Route to upload profile photo to Cloudinary.
+ */
+router.post("/profile/upload", userAuth, upload.single("profilePhoto"), async (req, res, next) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: "No file uploaded" });
+        }
+
+        // Upload to Cloudinary from buffer
+        const result = await new Promise((resolve, reject) => {
+            const uploadStream = cloudinary.uploader.upload_stream(
+                {
+                    folder: "devMatch/profiles",
+                    transformation: [{ width: 500, height: 500, crop: "limit" }],
+                },
+                (error, result) => {
+                    if (error) reject(error);
+                    else resolve(result);
+                }
+            );
+            uploadStream.end(req.file.buffer);
+        });
+
+        res.json({
+            message: "Photo uploaded successfully",
+            photoUrl: result.secure_url
+        });
 
     } catch (err) {
         next(err);
