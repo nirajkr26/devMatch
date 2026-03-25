@@ -95,11 +95,11 @@ frontend/src/
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v16.x or higher)
-- MongoDB Atlas Account / Local Instance
-- Razorpay API Keys (for payment testing)
+- Node.js (v20.x or higher) **or** Docker & Docker Compose
+- MongoDB Atlas Account
+- Razorpay, Cloudinary, Resend, and Upstash Redis credentials
 
-### Installation
+### Installation (Local Development)
 
 1. **Clone the repository**
    ```bash
@@ -123,20 +123,75 @@ frontend/src/
    CLOUDINARY_API_SECRET=your_cloudinary_api_secret
    ```
 
-
 3. **Backend Setup**
    ```bash
    cd backend
    npm install
-   npm run dev
+   npm start        # production
+   # or
+   npm run dev      # development with nodemon
    ```
 
 4. **Frontend Setup**
    ```bash
    cd ../frontend
    npm install
-   npm run dev
+   npm run dev      # development server (Vite)
    ```
+
+---
+
+## 🐳 Docker Setup
+
+### Prerequisites
+- [Docker](https://www.docker.com/get-started) installed
+- `backend/.env` file configured (same as above)
+
+### Run Backend Only
+```bash
+# Build the image
+docker build -t devmatch-backend ./backend
+
+# Run the container (loads env from file)
+docker run -d \
+  --name devmatch-backend \
+  -p 3000:3000 \
+  --env-file ./backend/.env \
+  devmatch-backend
+```
+
+### Run Frontend Only
+```bash
+# Build the image (pass your backend URL at build time)
+docker build \
+  --build-arg VITE_BACKEND_URL=https://your-backend-url.com \
+  -t devmatch-frontend ./frontend
+
+# Run the container
+docker run -d \
+  --name devmatch-frontend \
+  -p 80:80 \
+  devmatch-frontend
+```
+> The frontend is served by Nginx on port `80` with SPA routing fully configured.
+
+### Run Both with Docker Compose ⚡ (Recommended)
+```bash
+# In the project root, set the backend URL for the frontend build
+VITE_BACKEND_URL=http://localhost:3000 docker compose up --build -d
+```
+This will:
+1. Build and start the **backend** on port `3000`
+2. Wait for the backend to pass its `/health` check
+3. Build and start the **frontend** on port `80`, with the backend URL baked in
+
+**Useful Compose Commands:**
+```bash
+docker compose logs -f           # Stream logs for all services
+docker compose logs -f backend   # Stream backend logs only
+docker compose down              # Stop and remove containers
+docker compose down --volumes    # Stop and remove containers + volumes
+```
 
 ---
 
