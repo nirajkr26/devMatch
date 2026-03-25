@@ -12,14 +12,46 @@ router.get("/user/requests/received", userAuth, async (req, res, next) => {
     try {
         const loggedInUser = req.user;
 
-        // Find requests targeted to current user with status 'interested'
+        const page = parseInt(req.query.page) || 1;
+        let limit = parseInt(req.query.limit) || 10;
+        limit = limit > 40 ? 40 : limit;
+        const skip = (page - 1) * limit;
+
         const connectionRequests = await ConnectionRequest.find({
             toUserId: loggedInUser._id,
             status: "interested",
-        }).populate("fromUserId", "firstName lastName photoUrl age gender about skills");
+        }).populate("fromUserId", "firstName lastName photoUrl age gender about skills")
+            .skip(skip)
+            .limit(limit);
 
         res.json({
-            message: "fetched all requests ",
+            message: "fetched all requests",
+            data: connectionRequests
+        });
+    } catch (err) {
+        err.status = 400;
+        next(err);
+    }
+})
+
+router.get("/user/requests/sent", userAuth, async (req, res, next) => {
+    try {
+        const loggedInUser = req.user;
+
+        const page = parseInt(req.query.page) || 1;
+        let limit = parseInt(req.query.limit) || 10;
+        limit = limit > 40 ? 40 : limit;
+        const skip = (page - 1) * limit;
+
+        const connectionRequests = await ConnectionRequest.find({
+            fromUserId: loggedInUser._id,
+            status: "interested",
+        }).populate("toUserId", "firstName lastName photoUrl age gender about skills")
+            .skip(skip)
+            .limit(limit);
+
+        res.json({
+            message: "fetched all sent requests",
             data: connectionRequests
         });
     } catch (err) {

@@ -95,4 +95,32 @@ router.post("/request/review/:status/:id", userAuth, async (req, res, next) => {
     }
 })
 
+/**
+ * Route to withdraw (unsend) a connection request.
+ * Only the owner of the request can withdraw it.
+ */
+router.delete("/request/withdraw/:id", userAuth, async (req, res, next) => {
+    try {
+        const loggedInUser = req.user;
+        const requestId = req.params.id;
+
+        const connectionRequest = await ConnectionRequest.findOne({
+            _id: requestId,
+            fromUserId: loggedInUser._id,
+            status: "interested"
+        });
+
+        if (!connectionRequest) {
+            return res.status(404).json({ message: "Connection request not found" });
+        }
+
+        await ConnectionRequest.findByIdAndDelete(requestId);
+
+        res.json({ message: "Connection request withdrawn successfully" });
+    } catch (err) {
+        err.status = 400;
+        next(err);
+    }
+})
+
 module.exports = router;

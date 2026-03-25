@@ -15,6 +15,9 @@
 ### 📡 Real-Time Professional Networking
 - **Algorithmic Discovery (Feed)**: A Tinder-inspired discovery engine where developers can view profiles, tech stacks, and "Pass" or "Connect" in one click.
 - **Dynamic User Cards**: Rich profile visualizations featuring bios, tech expertise, and professional experience.
+- **Bi-Directional Request Management**: Active "Incoming" and "Outgoing" tabs to manage both received invitations and pending sent requests.
+- **Request Withdrawal**: Instant "Unsend" capability for pending invitations to maintain discovery control.
+- **Optimized Pagination**: High-performance data segmentation for Feed, Connections, and Request lists to ensure smooth scaling.
 
 ### 💬 Real-Time Communication
 - **Socket.io Integration**: Low-latency, real-time messaging powered by WebSockets.
@@ -165,10 +168,12 @@ frontend/src/
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | **GET** | `/feed` | Get non-interacted developers for discovery |
-| **GET** | `/user/requests/received` | Fetch all pending incoming requests |
+| **GET** | `/user/requests/received` | Fetch pending incoming requests (Paginated) |
+| **GET** | `/user/requests/sent` | Fetch pending outgoing requests (Paginated) |
 | **GET** | `/user/connections` | List all accepted professional connections |
 | **POST** | `/request/send/:status/:toUserId` | Send request (status: `interested` / `ignored`) |
 | **POST** | `/request/review/:status/:id` | Review pending request (status: `accepted` / `rejected`) |
+| **DELETE** | `/request/withdraw/:id` | Withdraw / Unsend a pending sent request |
 
 ### 💬 Messaging
 | Method | Endpoint | Description |

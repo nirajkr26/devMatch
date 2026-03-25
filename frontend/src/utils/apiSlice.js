@@ -42,8 +42,16 @@ export const apiSlice = createApi({
 
         // Request Management
         getRequests: builder.query({
-            query: () => ({
-                url: "/user/requests/received",
+            query: ({ page = 1, limit = 4 } = {}) => ({
+                url: `/user/requests/received?page=${page}&limit=${limit}`,
+                credentials: "include",
+            }),
+            providesTags: ["Requests"],
+        }),
+
+        getSentRequests: builder.query({
+            query: ({ page = 1, limit = 4 } = {}) => ({
+                url: `/user/requests/sent?page=${page}&limit=${limit}`,
                 credentials: "include",
             }),
             providesTags: ["Requests"],
@@ -87,6 +95,15 @@ export const apiSlice = createApi({
             invalidatesTags: ["Requests", "Connections", "Feed"],
         }),
 
+        withdrawConnectionRequest: builder.mutation({
+            query: (requestId) => ({
+                url: `/request/withdraw/${requestId}`,
+                method: "DELETE",
+                credentials: "include",
+            }),
+            invalidatesTags: ["Requests", "Feed"],
+        }),
+
         updateProfile: builder.mutation({
             query: (profileData) => ({
                 url: "/profile/edit",
@@ -104,8 +121,10 @@ export const {
     useGetFeedQuery,
     useGetConnectionsQuery,
     useGetRequestsQuery,
+    useGetSentRequestsQuery,
     useGetChatQuery,
     useSendConnectionRequestMutation,
     useReviewConnectionRequestMutation,
+    useWithdrawConnectionRequestMutation,
     useUpdateProfileMutation
 } = apiSlice;
