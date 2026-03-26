@@ -1,8 +1,8 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const { userAuth } = require("../middlewares/auth");
-const { ConnectionRequest } = require("../models/connRequest");
-const User = require("../models/user");
+import { userAuth } from "../middlewares/auth.js";
+import { ConnectionRequest } from "../models/connRequest.js";
+import User from "../models/user.js";
 
 /**
  * Route to send a connection request (interested or ignored).
@@ -123,4 +123,4 @@ router.delete("/request/withdraw/:id", userAuth, async (req, res, next) => {
     }
 })
 
-module.exports = router;
+export default router;
