@@ -33,7 +33,20 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true,
+        required: function () {
+            // Password only required for native email/pass accounts
+            return !(this.googleId || this.githubId);
+        },
+    },
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true, // Allows multiple null values
+    },
+    githubId: {
+        type: String,
+        unique: true,
+        sparse: true,
     },
     age: {
         type: Number,
@@ -117,8 +130,8 @@ userSchema.methods.validatePassword = async function (passwordInputByUser) {
  */
 userSchema.pre("save", async function (next) {
     const user = this;
-    // Only re-hash if password is newly set or changed
-    if (user.isModified("password")) {
+    // Only re-hash if password is newly set or changed and NOT null
+    if (user.isModified("password") && user.password) {
         user.password = await bcrypt.hash(user.password, 10);
     }
     next();

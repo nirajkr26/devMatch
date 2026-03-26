@@ -10,6 +10,21 @@ const sendEmail = require("../utils/sendEmail");
 const { OTP_TEMPLATE, PASSWORD_RESET_TEMPLATE } = require("../utils/emailTemplates");
 const crypto = require("crypto");
 const validator = require("validator");
+const passport = require("passport");
+
+/**
+ * Shared Callback handler post-social-auth
+ */
+const handleAuthRedirect = async (req, res) => {
+    try {
+        const user = req.user;
+        const token = await user.getJWT();
+        res.cookie("token", token, cookieConfig);
+        res.redirect(`${process.env.FRONTEND_URL}/feed`);
+    } catch (err) {
+        res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
+    }
+}
 
 /**
  * Higher Order Route Factory
@@ -154,6 +169,22 @@ const setupAuthRoutes = () => {
             res.status(200).json({ message: "Password updated" });
         } catch (err) { next(err); }
     });
+
+    // --- [ SOCIAL AUTH ROUTES ] ---
+
+    // Google
+    router.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+    router.get("/auth/google/callback", 
+        passport.authenticate("google", { session: false, failureRedirect: `${process.env.FRONTEND_URL}/login` }), 
+        handleAuthRedirect
+    );
+
+    // GitHub
+    router.get("/auth/github", passport.authenticate("github", { scope: ["user:email"] }));
+    router.get("/auth/github/callback", 
+        passport.authenticate("github", { session: false, failureRedirect: `${process.env.FRONTEND_URL}/login` }), 
+        handleAuthRedirect
+    );
 
     return router;
 };

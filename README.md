@@ -39,6 +39,8 @@
 - **Validation Layers**: Robust client-side and server-side input validation for all critical payloads.
 - **Cloudinary Integration**: Fully automated, high-performance cloud storage for developer profile photos.
 - **Client-Side Image Compression**: Smart frontend compression to max 300KB using `browser-image-compression` to optimize bandwidth and storage.
+- **Social OAuth 2.0 Integration**: One-click registration and login via Google and GitHub, powered by Passport.js.
+- **Smart Account Linking**: Automatically merges social logins with existing accounts if the email addresses match.
 
 
 ---
@@ -60,7 +62,7 @@
 - **Real-Time**: Socket.io (Namespaced rooms for individual chats)
 - **Email**: Resend (HTTP SDK for transactional delivery)
 - **Verified Domain**: `support.nirajkr26.in` (Professional branding)
-- **Authentication**: JWT & Cookie-Parser
+- **Authentication**: JWT, Cookie-Parser, and Passport.js (Google & GitHub Strategies)
 - **Payments**: Razorpay Node SDK
 - **Cloud Storage**: Cloudinary (Image management & transformations)
 - **File Uploads**: Multer (Memory-buffer optimized processing)
@@ -121,6 +123,12 @@ frontend/src/
    CLOUDINARY_CLOUD_NAME=your_cloudinary_name
    CLOUDINARY_API_KEY=your_cloudinary_api_key
    CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+   GOOGLE_CLIENT_ID=your_google_id
+   GOOGLE_CLIENT_SECRET=your_google_secret
+   GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
+   GITHUB_CLIENT_ID=your_github_id
+   GITHUB_CLIENT_SECRET=your_github_secret
+   GITHUB_CALLBACK_URL=http://localhost:3000/auth/github/callback
    ```
 
 3. **Backend Setup**
@@ -209,6 +217,10 @@ docker compose down --volumes    # Stop and remove containers + volumes
 | **POST** | `/logout` | Terminate session and clear cookies |
 | **POST** | `/forgot-password` | Initiate recovery with secure reset link |
 | **POST** | `/reset-password` | Update credentials via valid reset token |
+| **GET** | `/auth/google` | Initiate Google OAuth flow |
+| **GET** | `/auth/google/callback` | Google OAuth redirect handler |
+| **GET** | `/auth/github` | Initiate GitHub OAuth flow |
+| **GET** | `/auth/github/callback` | GitHub OAuth redirect handler |
 
 
 ### 👤 Profile Management

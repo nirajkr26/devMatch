@@ -9,6 +9,8 @@ const http = require("http");
 const { connectRedis, redisClient } = require("./config/redis");
 const { createGlobalLimiter } = require("./config/rateLimiter");
 const mongoose = require("mongoose");
+const passport = require("passport");
+require("./config/passport"); // Import passport strategy configuration
 require("dotenv").config();
 
 
@@ -23,6 +25,7 @@ app.set("trust proxy", 1);
  */
 app.use(express.json());
 app.use(cookieParser());
+app.use(passport.initialize());
 app.use(cors({
     origin: process.env.FRONTEND_URL,
     credentials: true
