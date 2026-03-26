@@ -1,8 +1,8 @@
 import { io } from "socket.io-client";
-import { BASE_URL } from "./constant";
+import { SERVER_URL } from "./constant";
 
 export const createSocketConnection = () => {
-    return io(BASE_URL, {
+    return io(SERVER_URL, {
         withCredentials: true
     });
 };

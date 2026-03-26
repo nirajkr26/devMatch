@@ -126,10 +126,10 @@ frontend/src/
    CLOUDINARY_API_SECRET=your_cloudinary_api_secret
    GOOGLE_CLIENT_ID=your_google_id
    GOOGLE_CLIENT_SECRET=your_google_secret
-   GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
+   GOOGLE_CALLBACK_URL=http://localhost:3000/api/auth/google/callback
    GITHUB_CLIENT_ID=your_github_id
    GITHUB_CLIENT_SECRET=your_github_secret
-   GITHUB_CALLBACK_URL=http://localhost:3000/auth/github/callback
+   GITHUB_CALLBACK_URL=http://localhost:3000/api/auth/github/callback
    ```
 
 3. **Backend Setup**
@@ -211,54 +211,54 @@ docker compose down --volumes    # Stop and remove containers + volumes
 ### 🔐 Authentication
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| **POST** | `/signup` | Register - Triggers 6-digit OTP email |
-| **POST** | `/verify-otp` | Verify account or activate session |
-| **POST** | `/resend-otp` | Throttle-protected fresh OTP dispatch |
-| **POST** | `/login` | Authenticate (Smart Flow: triggers new OTP if unverified) |
-| **POST** | `/logout` | Terminate session and clear cookies |
-| **POST** | `/forgot-password` | Initiate recovery with secure reset link |
-| **POST** | `/reset-password` | Update credentials via valid reset token |
-| **GET** | `/auth/google` | Initiate Google OAuth flow |
-| **GET** | `/auth/google/callback` | Google OAuth redirect handler |
-| **GET** | `/auth/github` | Initiate GitHub OAuth flow |
-| **GET** | `/auth/github/callback` | GitHub OAuth redirect handler |
-| **POST** | `/auth/social/exchange` | Exchange token for httpOnly cookie (cross-domain) |
+| **POST** | `/api/signup` | Register - Triggers 6-digit OTP email |
+| **POST** | `/api/verify-otp` | Verify account or activate session |
+| **POST** | `/api/resend-otp` | Throttle-protected fresh OTP dispatch |
+| **POST** | `/api/login` | Authenticate (Smart Flow: triggers new OTP if unverified) |
+| **POST** | `/api/logout` | Terminate session and clear cookies |
+| **POST** | `/api/forgot-password` | Initiate recovery with secure reset link |
+| **POST** | `/api/reset-password` | Update credentials via valid reset token |
+| **GET** | `/api/auth/google` | Initiate Google OAuth flow |
+| **GET** | `/api/auth/google/callback` | Google OAuth redirect handler |
+| **GET** | `/api/auth/github` | Initiate GitHub OAuth flow |
+| **GET** | `/api/auth/github/callback` | GitHub OAuth redirect handler |
+| **POST** | `/api/auth/social/exchange` | Exchange token for httpOnly cookie (cross-domain) |
 
 
 ### 👤 Profile Management
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| **GET** | `/profile/view` | Fetch current user's profile data |
-| **PATCH** | `/profile/edit` | Update profile fields (bio, photo, skills) |
-| **POST** | `/profile/upload` | Upload & compress profile photo to Cloudinary |
-| **PATCH** | `/profile/password` | Securely update account password |
+| **GET** | `/api/profile/view` | Fetch current user's profile data |
+| **PATCH** | `/api/profile/edit` | Update profile fields (bio, photo, skills) |
+| **POST** | `/api/profile/upload` | Upload & compress profile photo to Cloudinary |
+| **PATCH** | `/api/profile/password` | Securely update account password |
 
 ### 🤝 Connection System
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| **GET** | `/feed` | Get non-interacted developers for discovery |
-| **GET** | `/user/requests/received` | Fetch pending incoming requests (Paginated) |
-| **GET** | `/user/requests/sent` | Fetch pending outgoing requests (Paginated) |
-| **GET** | `/user/connections` | List all accepted professional connections |
-| **POST** | `/request/send/:status/:toUserId` | Send request (status: `interested` / `ignored`) |
-| **POST** | `/request/review/:status/:id` | Review pending request (status: `accepted` / `rejected`) |
-| **DELETE** | `/request/withdraw/:id` | Withdraw / Unsend a pending sent request |
+| **GET** | `/api/feed` | Get non-interacted developers for discovery |
+| **GET** | `/api/user/requests/received` | Fetch pending incoming requests (Paginated) |
+| **GET** | `/api/user/requests/sent` | Fetch pending outgoing requests (Paginated) |
+| **GET** | `/api/user/connections` | List all accepted professional connections |
+| **POST** | `/api/request/send/:status/:toUserId` | Send request (status: `interested` / `ignored`) |
+| **POST** | `/api/request/review/:status/:id` | Review pending request (status: `accepted` / `rejected`) |
+| **DELETE** | `/api/request/withdraw/:id` | Withdraw / Unsend a pending sent request |
 
 ### 💬 Messaging
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| **GET** | `/chat/:targetUserId` | Fetch full message history with a connection |
+| **GET** | `/api/chat/:targetUserId` | Fetch full message history with a connection |
 
 ### 💳 Payments & Premium
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| **POST** | `/payment/create` | Initialize Razorpay order for Silver/Gold |
-| **POST** | `/payment/verify` | Server-side signature verification of payment |
+| **POST** | `/api/payment/create` | Initialize Razorpay order for Silver/Gold |
+| **POST** | `/api/payment/verify` | Server-side signature verification of payment |
 
 ### 🏥 System Status
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| **GET** | `/health` | Live system and DB connectivity report |
+| **GET** | `/api/health` | Live system and DB connectivity report |
 
 
 ---

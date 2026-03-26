@@ -12,4 +12,4 @@ jobs:
     steps:
       - name: Ping Render devMatch health endpoint
         run: |
-          curl -s https://devmatch-backend-awhk.onrender.com/health || echo "Failed"
+          curl -s https://devmatch-backend-awhk.onrender.com/api/health || echo "Failed"

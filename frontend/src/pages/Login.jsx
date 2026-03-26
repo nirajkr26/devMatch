@@ -29,10 +29,10 @@ const Login = () => {
     const onSubmit = async (formData) => {
         setLoading(true);
         setError("");
-        const endpoint = isLogin ? "/login" : "/signup";
+        const endpoint = isLogin ? "login" : "signup";
 
         try {
-            const res = await axios.post(BASE_URL + endpoint, formData, { withCredentials: true });
+            const res = await axios.post(`${BASE_URL}/${endpoint}`, formData, { withCredentials: true });
 
             if (isLogin) {
                 dispatch(addUser(res.data));

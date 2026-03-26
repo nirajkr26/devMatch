@@ -35,7 +35,7 @@ app.use(cors({
  * Health Check Endpoint
  * Provides system status and database connectivity info
  */
-app.get("/health", async (req, res) => {
+app.get("/api/health", async (req, res) => {
     const healthcheck = {
         uptime: process.uptime(),
         message: 'OK',
@@ -95,12 +95,12 @@ connectDB()
         const authRouter = setupAuthRoutes();
 
         // Register Routes
-        app.use("/", authRouter);
-        app.use("/", profileRouter);
-        app.use("/", requestRouter);
-        app.use("/", userRouter);
-        app.use("/", paymentRouter);
-        app.use("/", chatRouter);
+        app.use("/api", authRouter);
+        app.use("/api", profileRouter);
+        app.use("/api", requestRouter);
+        app.use("/api", userRouter);
+        app.use("/api", paymentRouter);
+        app.use("/api", chatRouter);
 
         // Global Error Handler (MUST be registered AFTER routes)
         app.use((err, req, res, next) => {
