@@ -12,6 +12,7 @@ import Chat from "./pages/Chat";
 import VerifyOtp from "./pages/VerifyOtp";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import SocialCallback from "./pages/SocialCallback";
 
 
 const App = () => {
@@ -30,6 +31,7 @@ const App = () => {
           <Route path="/verify-otp" element={<VerifyOtp />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/auth/social-callback" element={<SocialCallback />} />
           <Route path="*" element={<PageNotFound />} />
 
         </Route>

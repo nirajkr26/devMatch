@@ -11,16 +11,18 @@ const { OTP_TEMPLATE, PASSWORD_RESET_TEMPLATE } = require("../utils/emailTemplat
 const crypto = require("crypto");
 const validator = require("validator");
 const passport = require("passport");
+const jwt = require("jsonwebtoken");
 
 /**
  * Shared Callback handler post-social-auth
+ * Passes token via URL to the frontend since cross-domain cookie setting
+ * during 302 redirects is blocked by modern browsers.
  */
 const handleAuthRedirect = async (req, res) => {
     try {
         const user = req.user;
         const token = await user.getJWT();
-        res.cookie("token", token, cookieConfig);
-        res.redirect(`${process.env.FRONTEND_URL}/feed`);
+        res.redirect(`${process.env.FRONTEND_URL}/auth/social-callback?token=${token}`);
     } catch (err) {
         res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
     }
@@ -185,6 +187,22 @@ const setupAuthRoutes = () => {
         passport.authenticate("github", { session: false, failureRedirect: `${process.env.FRONTEND_URL}/login` }), 
         handleAuthRedirect
     );
+    // Token Exchange: Frontend sends the token (from URL) and gets a proper httpOnly cookie
+    router.post("/auth/social/exchange", async (req, res, next) => {
+        try {
+            const { token } = req.body;
+            if (!token) return res.status(400).json({ message: "Token is required" });
+
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const user = await User.findById(decoded._id);
+            if (!user) return res.status(404).json({ message: "User not found" });
+
+            res.cookie("token", token, cookieConfig);
+            res.json(user);
+        } catch (err) {
+            res.status(401).json({ message: "Invalid or expired token" });
+        }
+    });
 
     return router;
 };

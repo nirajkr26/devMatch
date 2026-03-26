@@ -41,6 +41,7 @@
 - **Client-Side Image Compression**: Smart frontend compression to max 300KB using `browser-image-compression` to optimize bandwidth and storage.
 - **Social OAuth 2.0 Integration**: One-click registration and login via Google and GitHub, powered by Passport.js.
 - **Smart Account Linking**: Automatically merges social logins with existing accounts if the email addresses match.
+- **Cross-Domain Token Exchange**: Production-safe OAuth flow using a dedicated token exchange endpoint, solving third-party cookie restrictions between Vercel and Render.
 
 
 ---
@@ -221,6 +222,7 @@ docker compose down --volumes    # Stop and remove containers + volumes
 | **GET** | `/auth/google/callback` | Google OAuth redirect handler |
 | **GET** | `/auth/github` | Initiate GitHub OAuth flow |
 | **GET** | `/auth/github/callback` | GitHub OAuth redirect handler |
+| **POST** | `/auth/social/exchange` | Exchange token for httpOnly cookie (cross-domain) |
 
 
 ### 👤 Profile Management
