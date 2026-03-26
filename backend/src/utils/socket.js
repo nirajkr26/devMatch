@@ -1,6 +1,6 @@
 const socket = require("socket.io")
 const crypto = require("crypto");
-const { Chat } = require("../models/chat");
+const { Chat, Message } = require("../models/chat");
 const { ConnectionRequest } = require("../models/connRequest")
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
@@ -88,46 +88,54 @@ const initializeSocket = (server) => {
             socket.join(roomId); // Client joins their unique specific room
         })
 
-        // Listen for new chat messages
-        socket.on("sendMessage", async ({ userId, targetUserId, text }) => {
+        // Listen for new chat messages with Acknowledgment (Optimistic UI)
+        socket.on("sendMessage", async ({ userId, targetUserId, text, tempId }, callback) => {
             try {
                 const roomId = getSecretRoomId(userId, targetUserId)
                 const { firstName, lastName } = socket.user;
 
-                // Security check: only allow messaging if connection status is "accepted"
-                const conn = await ConnectionRequest.findOne({
-                    $or: [
-                        { fromUserId: userId, toUserId: targetUserId, status: "accepted" },
-                        { fromUserId: targetUserId, toUserId: userId, status: "accepted" }
-                    ]
-                })
+                // 1. Prioritize Broadcast to RECIPIENT (Exclude sender since they have it optimistically)
+                socket.to(roomId).emit("messageReceived", { 
+                    senderId: userId, 
+                    firstName, 
+                    lastName, 
+                    text,
+                    tempId // Shared for reconciliation if needed
+                });
 
-                if (!conn) throw new Error("Not friends");
-
-                // Find or create the persistent Chat document
+                // 2. Perform DB logic
                 let chat = await Chat.findOne({
                     participants: { $all: [userId, targetUserId] }
-                })
+                });
 
                 if (!chat) {
                     chat = new Chat({
-                        participants: [userId, targetUserId],
-                        messages: []
-                    })
+                        participants: [userId, targetUserId]
+                    });
+                    await chat.save();
                 }
 
-                // Add message to chat history and save to DB
-                chat.messages.push({
+                const newMessage = new Message({
+                    chatId: chat._id,
                     senderId: userId,
                     text
-                })
+                });
 
-                await chat.save();
+                const savedMsg = await newMessage.save();
 
-                // Broadcast message only to participants in the specific room
-                io.to(roomId).emit("messageReceived", { senderId: userId, firstName, lastName, text })
+                // 3. Acknowledge the SENDER with the real DB ID
+                if (typeof callback === "function") {
+                    callback({ 
+                        status: "ok", 
+                        _id: savedMsg._id, 
+                        tempId 
+                    });
+                }
             } catch (err) {
                 console.error("Socket Error (sendMessage):", err);
+                if (typeof callback === "function") {
+                    callback({ status: "error", error: err.message, tempId });
+                }
             }
         })
 

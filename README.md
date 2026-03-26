@@ -19,10 +19,12 @@
 - **Request Withdrawal**: Instant "Unsend" capability for pending invitations to maintain discovery control.
 - **Optimized Pagination**: High-performance data segmentation for Feed, Connections, and Request lists to ensure smooth scaling.
 
-### 💬 Real-Time Communication
-- **Socket.io Integration**: Low-latency, real-time messaging powered by WebSockets.
-- **Persistent Chat History**: Securely stored conversations that load instantly.
-- **Active Status Indicators**: Real-time status updates for peer-to-peer interactions.
+### 💬 Real-Time Communication (High-Performance Engine)
+- **WhatsApp-Style Optimistic UI**: Messages appear instantly (under 50ms) in the sender's UI. The system reconciles the local state with the server via Socket.io acknowledgments.
+- **Reverse Infinite Scroll**: High-performance "load-more" logic for legacy messages using a "Sentinel" Observer. 
+- **Cursor-Based Pagination**: Uses `_id` cursors to fetch 20 messages at a time, ensuring the initial chat load is always < 200ms regardless of history size.
+- **Persistent Message Store**: De-embedded collection architecture for messages to bypass MongoDB's 16MB document limit and ensure infinite scalability.
+- **Visual Status Tracking**: Real-time "Pending", "Sent", and "Error" indicators for every message.
 
 ### 👑 Premium Membership (Monetization)
 - **Tiered Plans**: Silver and Gold membership tiers with exclusive benefits.
@@ -49,12 +51,13 @@
 ## 🛠️ Technology Stack
 
 ### Frontend
-- **Framework**: React.js
-- **State Management**: Redux Toolkit (Slices for Users, Feed, Connections, and Requests)
-- **Styling**: Tailwind CSS & DaisyUI (Custom Premium Theme)
-- **Icons**: Lucide React / SVG Icons
-- **HTTP Client**: Axios (Interceptors for credentials)
-- **Image Processing**: browser-image-compression (Smart max 300KB client-side optimization)
+- **Framework**: React.js (v19)
+- **Performance**: Route-based **Lazy Loading** (Code Splitting) and **Suspense** for instant initial bundles.
+- **State Management**: Redux Toolkit & RTK Query (with custom cache merging for infinite scroll).
+- **Styling**: Tailwind CSS v4 & DaisyUI (Custom Premium Theme).
+- **Asset Optimization**: Immutable caching and production-grade routing via `vercel.json`.
+- **HTTP Client**: Axios (Interceptors for credentials).
+- **Image Processing**: browser-image-compression (Smart max 300KB client-side optimization).
 
 ### Backend
 - **Engine**: Node.js & Express.js
@@ -247,7 +250,7 @@ docker compose down --volumes    # Stop and remove containers + volumes
 ### 💬 Messaging
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| **GET** | `/api/chat/:targetUserId` | Fetch full message history with a connection |
+| **GET** | `/api/chat/:targetUserId` | Fetch message history (Supports `?before=` cursor for infinite scroll) |
 
 ### 💳 Payments & Premium
 | Method | Endpoint | Description |

@@ -11,23 +11,84 @@ const Chat = () => {
     const [newMessage, setNewMessage] = useState("");
     const [socket, setSocket] = useState(null);
     const [targetUser, setTargetUser] = useState(null);
+    const [before, setBefore] = useState("");
+    const [initialLoad, setInitialLoad] = useState(true);
 
     const user = useSelector(store => store.user);
     const connections = useSelector(store => store.connections);
     const userId = user?._id;
     const messagesEndRef = useRef(null);
+    const sentinelRef = useRef(null);
+    const chatContainerRef = useRef(null);
+    
+    // For manual scroll anchoring
+    const prevScrollHeightRef = useRef(0);
+    const prevMessagesLenRef = useRef(0);
 
     // Connections & Chat History retrieval
     const { data: sessionConnections } = useGetConnectionsQuery();
-    const { data: chatHistory, isLoading } = useGetChatQuery(targetUserId);
+    const { data: chatData, isLoading, isFetching } = useGetChatQuery({ targetUserId, before }, {
+        skip: !targetUserId
+    });
+
+    // Derive values from the RTK cache object
+    const chatMessages = chatData?.messages || [];
+    const hasMore = chatData?.hasMore ?? true;
+
+    // Handle Intersection Observer for the Sentinel (top of list)
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && !isFetching && !isLoading && hasMore && messages.length > 0) {
+                    // Save scroll state BEFORE triggering the fetch
+                    if (chatContainerRef.current) {
+                        prevScrollHeightRef.current = chatContainerRef.current.scrollHeight;
+                    }
+                    // Fetch older messages using the oldest message ID
+                    setBefore(messages[0]._id);
+                }
+            },
+            { threshold: 0.1 }
+        );
+
+        const currentSentinel = sentinelRef.current;
+        if (currentSentinel) observer.observe(currentSentinel);
+
+        return () => {
+            if (currentSentinel) observer.unobserve(currentSentinel);
+        };
+    }, [messages, isFetching, isLoading, hasMore]);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
 
-    useEffect(() => {
-        scrollToBottom();
+    // Advanced Scroll Anchoring
+    React.useLayoutEffect(() => {
+        const container = chatContainerRef.current;
+        if (!container || messages.length === 0) return;
+
+        const wasPrepend = messages.length > prevMessagesLenRef.current && prevMessagesLenRef.current > 0 && !initialLoad;
+        
+        if (wasPrepend && prevScrollHeightRef.current > 0) {
+            // Older messages were prepended: anchor the scroll position
+            const heightDiff = container.scrollHeight - prevScrollHeightRef.current;
+            container.scrollTop += heightDiff;
+        } else if (initialLoad) {
+            // Initial load -> scroll to bottom
+            messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
+            setInitialLoad(false);
+        } else {
+            // New message sent/received -> scroll to bottom only if already near bottom
+            const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+            if (isNearBottom) {
+                scrollToBottom();
+            }
+        }
+
+        prevMessagesLenRef.current = messages.length;
     }, [messages]);
+
 
     const findTargetUser = () => {
         // First priority: Query data (current sessions)
@@ -39,21 +100,43 @@ const Chat = () => {
         return null;
     }
 
-    // Sync query data with local state for socket integration
+    // Reset local state when switching to a different user's chat
     useEffect(() => {
-        if (chatHistory) {
-            setMessages(chatHistory);
-        }
-    }, [chatHistory]);
+        setMessages([]);
+        setBefore("");
+        setInitialLoad(true);
+        prevMessagesLenRef.current = 0;
+        prevScrollHeightRef.current = 0;
+        setTargetUser(null);
+    }, [targetUserId]);
+
+    // Intelligent sync: Merges RTK query data (infinite scroll history) with local optimisitic 
+    // messages (WebSocket real-time traffic).
+    useEffect(() => {
+        setMessages(prevLocalMessages => {
+            if (chatMessages.length === 0) return prevLocalMessages;
+            if (prevLocalMessages.length === 0) return chatMessages;
+
+            // Extract all incoming IDs from the RTK cache
+            const fetchedIds = new Set(chatMessages.map(m => m._id));
+            
+            // Keep local messages that the server hasn't given us via API yet 
+            // (e.g. ones just sent/received through web-socket in the current session)
+            const newlyAddedLocalMessages = prevLocalMessages.filter(m => !fetchedIds.has(m._id));
+            
+            // We prepend older history, and append the latest socket traffic
+            return [...chatMessages, ...newlyAddedLocalMessages];
+        });
+    }, [chatMessages]);
 
     // Handle target user info with fallbacks
     useEffect(() => {
         const locallyFound = findTargetUser();
         if (locallyFound) {
             setTargetUser(locallyFound);
-        } else if (chatHistory && chatHistory.length > 0) {
+        } else if (chatMessages.length > 0) {
             // Fallback: extract other person's details from chat messages
-            const opponentMsg = chatHistory.find(m => m.senderId === targetUserId);
+            const opponentMsg = chatMessages.find(m => m.senderId === targetUserId);
             if (opponentMsg) {
                 setTargetUser({
                     firstName: opponentMsg.firstName,
@@ -63,7 +146,7 @@ const Chat = () => {
                 });
             }
         }
-    }, [targetUserId, connections, chatHistory, sessionConnections]);
+    }, [targetUserId, connections, chatMessages, sessionConnections]);
 
     // Socket Connection Setup
     useEffect(() => {
@@ -73,12 +156,13 @@ const Chat = () => {
         setSocket(newSocket);
         newSocket.emit("joinChat", { userId, targetUserId })
 
-        newSocket.on("messageReceived", ({ senderId, firstName, lastName, text }) => {
+        newSocket.on("messageReceived", ({ senderId, firstName, lastName, text, tempId }) => {
             setMessages((prevMessages) => [...prevMessages, {
                 senderId,
                 firstName,
                 lastName,
                 text,
+                status: "sent",
                 createdAt: new Date()
             }]);
         })
@@ -92,14 +176,44 @@ const Chat = () => {
     const sendMessage = () => {
         if (!socket || !newMessage.trim()) return;
 
+        const tempId = crypto.randomUUID();
+        const msgText = newMessage;
+        
+        // 1. Optimistic Update (Immediate UI feedback)
+        const optimisticMsg = {
+            _id: tempId, // Temporary ID
+            senderId: userId,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            text: msgText,
+            status: "pending",
+            createdAt: new Date()
+        };
+
+        setMessages(prev => [...prev, optimisticMsg]);
+        setNewMessage("");
+
+        // 2. Socket Emission with Acknowledgment Callback
         socket.emit("sendMessage", {
             firstName: user.firstName,
             lastName: user.lastName,
             userId,
             targetUserId,
-            text: newMessage
-        })
-        setNewMessage("");
+            text: msgText,
+            tempId
+        }, (ack) => {
+            if (ack.status === "ok") {
+                // 3. Reconciliation (Update pending message with server ID)
+                setMessages(prev => prev.map(m => 
+                    m._id === ack.tempId ? { ...m, _id: ack._id, status: "sent" } : m
+                ));
+            } else {
+                // 4. Error Handling
+                setMessages(prev => prev.map(m => 
+                    m._id === ack.tempId ? { ...m, status: "error" } : m
+                ));
+            }
+        });
     }
 
     return (
@@ -134,8 +248,18 @@ const Chat = () => {
             </div>
 
             {/* Chat Messages */}
-            <div className='flex-1 overflow-y-auto px-4 py-8 space-y-6 scrollbar-thin scrollbar-thumb-base-100 bg-base-100/30'>
-                {isLoading ? (
+            <div 
+                ref={chatContainerRef}
+                className='flex-1 overflow-y-auto px-4 py-8 space-y-6 scrollbar-thin scrollbar-thumb-base-100 bg-base-100/30'
+            >
+                {/* Sentinel for Infinite Scroll */}
+                <div ref={sentinelRef} className="h-1 w-full flex items-center justify-center opacity-50">
+                    {isFetching && hasMore && messages.length > 0 && (
+                        <span className="loading loading-spinner text-primary w-4 h-4 mt-2"></span>
+                    )}
+                </div>
+
+                {isLoading && messages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full gap-4">
                         <span className="loading loading-ring loading-lg text-primary opacity-20"></span>
                         <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Loading Archive</p>
@@ -157,20 +281,26 @@ const Chat = () => {
                                         <img src={(isSender ? user?.photoUrl : targetUser?.photoUrl) || "/default-avatar.png"} alt="avatar" />
                                     </div>
                                 </div>
-                                <div className="chat-header mb-1 mx-2 flex items-center gap-2">
+                                <div className={"chat-header mb-1 mx-2 flex items-center gap-2 " + (msg.status === "pending" ? "opacity-40" : "")}>
                                     <span className='text-[10px] font-black uppercase tracking-widest opacity-40'>
-                                        {isSender ? "You" : `${msg.firstName}`}
-                                    </span>
-                                    <time className="text-[9px] opacity-20 font-bold group-hover:opacity-60 transition-opacity">
-                                        {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
-                                    </time>
-                                </div>
-                                <div className={"chat-bubble py-3 px-5 shadow-xl leading-relaxed text-sm md:text-base transition-all " +
-                                    (isSender
-                                        ? "bg-primary text-white rounded-br-none font-medium"
-                                        : "bg-base-300 text-base-content rounded-bl-none border border-base-200")}>
-                                    {msg.text}
-                                </div>
+                                         {isSender ? "You" : `${msg.firstName}`}
+                                     </span>
+                                     <time className="text-[9px] opacity-20 font-bold group-hover:opacity-60 transition-opacity flex items-center gap-1">
+                                         {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
+                                         {isSender && (
+                                             <span className="scale-75 translate-y-[-1px]">
+                                                 {msg.status === "pending" && <span className="loading loading-spinner w-3 h-3"></span>}
+                                                 {msg.status === "error" && <span className="text-error text-[10px] font-black">X</span>}
+                                             </span>
+                                         )}
+                                     </time>
+                                 </div>
+                                 <div className={"chat-bubble py-3 px-5 shadow-xl leading-relaxed text-sm md:text-base transition-all " +
+                                     (isSender
+                                         ? `bg-primary text-white rounded-br-none font-medium ${msg.status === "pending" ? "opacity-70 animate-pulse" : ""} ${msg.status === "error" ? "border-2 border-error !bg-error/10 text-error" : ""}`
+                                         : "bg-base-300 text-base-content rounded-bl-none border border-base-200")}>
+                                     {msg.text}
+                                 </div>
                             </div>
                         )
                     })

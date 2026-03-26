@@ -57,23 +57,49 @@ export const apiSlice = createApi({
             providesTags: ["Requests"],
         }),
 
-        // Chat History
+        // Chat History with Cursor-Based Pagination
         getChat: builder.query({
-            query: (targetUserId) => ({
-                url: `/chat/${targetUserId}`,
+            query: ({ targetUserId, before }) => ({
+                url: `/chat/${targetUserId}${before ? `?before=${before}` : ""}`,
                 credentials: "include",
             }),
             transformResponse: (response) => {
-                return response?.messages?.map((msg) => ({
+                const PAGE_SIZE = 20;
+                const messages = response?.messages?.map((msg) => ({
+                    _id: msg?._id,
                     senderId: msg?.senderId?._id,
                     firstName: msg?.senderId?.firstName,
                     lastName: msg?.senderId?.lastName,
                     photoUrl: msg?.senderId?.photoUrl,
                     text: msg?.text,
+                    status: "sent",
                     createdAt: msg?.createdAt
                 })) || [];
+                return {
+                    messages,
+                    hasMore: messages.length >= PAGE_SIZE // If we got a full page, there might be more
+                };
             },
-            providesTags: (result, error, arg) => [{ type: "Chat", id: arg }],
+            // Unify the cache key so all pages merge into the exact same chat object
+            serializeQueryArgs: ({ queryArgs }) => {
+                return queryArgs.targetUserId;
+            },
+            // Merge newly fetched (older) messages to the FRONT of the cache
+            merge: (currentCache, newItems, { arg }) => {
+                if (arg.before) {
+                    // Prepend older messages, update hasMore from the latest fetch
+                    return {
+                        messages: [...newItems.messages, ...currentCache.messages],
+                        hasMore: newItems.hasMore
+                    };
+                }
+                return newItems; // Initial load: replace the cache completely
+            },
+            // Force refetch only when the cursor actually changes
+            forceRefetch({ currentArg, previousArg }) {
+                return currentArg?.before !== previousArg?.before;
+            },
+            providesTags: (result, error, arg) => [{ type: "Chat", id: arg.targetUserId }],
         }),
 
         // Mutations (Actions that change data)
