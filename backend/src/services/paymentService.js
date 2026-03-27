@@ -1,9 +1,9 @@
-import razorpayInstance from "../utils/razorpay.js";
-import Payment from "../models/payment.js";
-import User from "../models/user.js";
-import crypto from "crypto";
-import mongoose from "mongoose";
-import { membershipAmount } from "../utils/constants.js";
+const razorpayInstance = require("../utils/razorpay");
+const Payment = require("../models/payment");
+const User = require("../models/user");
+const crypto = require("crypto");
+const mongoose = require("mongoose");
+const { membershipAmount } = require("../utils/constants");
 
 /**
  * Service class to handle payment-related business logic.
@@ -107,4 +107,4 @@ class PaymentService {
     }
 }
 
-export default new PaymentService();
+module.exports = new PaymentService();

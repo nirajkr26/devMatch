@@ -1,12 +1,12 @@
-import express from "express";
+const express = require("express");
 const router = express.Router();
-import { userAuth } from "../middlewares/auth.js";
-import { validateProfileEditData } from "../utils/validation.js";
-import User from "../models/user.js";
-import validator from "validator";
-import bcrypt from "bcrypt";
-import upload from "../middlewares/multer.js";
-import cloudinary from "../config/cloudinary.js";
+const { userAuth } = require("../middlewares/auth");
+const { validateProfileEditData } = require("../utils/validation");
+const User = require("../models/user");
+const validator = require("validator")
+const bcrypt = require("bcrypt")
+const upload = require("../middlewares/multer")
+const cloudinary = require("../config/cloudinary")
 
 /**
  * Route to view the authenticated user's own profile.
@@ -118,4 +118,4 @@ router.patch("/profile/password", userAuth, async (req, res, next) => {
 })
 
 
-export default router;
+module.exports = router;

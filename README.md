@@ -1,15 +1,10 @@
 # devMatch 🚀
 
-[![Status](https://img.shields.io/badge/Status-Beta-E91E63?style=for-the-badge&logo=statuspage)](https://devmatch.nirajkr26.in)
-[![React](https://img.shields.io/badge/Frontend-React_19-61DAFB?style=for-the-badge&logo=react)](https://react.dev)
-[![Node.js](https://img.shields.io/badge/Backend-Node.js_22-339933?style=for-the-badge&logo=node.js)](https://nodejs.org)
-[![MongoDB](https://img.shields.io/badge/Database-MongoDB-47A248?style=for-the-badge&logo=mongodb)](https://mongodb.com)
-[![Redis](https://img.shields.io/badge/Cache-Upstash_Redis-FF4438?style=for-the-badge&logo=redis)](https://upstash.com)
-[![Socket.io](https://img.shields.io/badge/Real--Time-Socket.io-010101?style=for-the-badge&logo=socket.io)](https://socket.io)
-[![Redux](https://img.shields.io/badge/State-Redux_Toolkit-764ABC?style=for-the-badge&logo=redux)](https://redux-toolkit.js.org)
-[![Tailwind CSS](https://img.shields.io/badge/Styling-Tailwind_V4-06B6D4?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com)
-[![Passport.js](https://img.shields.io/badge/Security-Passport_Auth-34E27A?style=for-the-badge&logo=passport)](https://passportjs.org)
-[![Docker](https://img.shields.io/badge/Platform-Docker_Enabled-2496ED?style=for-the-badge&logo=docker)](https://docker.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![React](https://img.shields.io/badge/Frontend-React-61DAFB?logo=react)](https://reactjs.org/)
+[![Node.js](https://img.shields.io/badge/Backend-Node.js-339933?logo=node.js)](https://nodejs.org/)
+[![MongoDB](https://img.shields.io/badge/Database-MongoDB-47A248?logo=mongodb)](https://www.mongodb.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Styling-Tailwind_CSS-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
 
 **devMatch** is a premium, high-performance networking platform designed specifically for developers. It combines the intuitive "swipe-to-match" discovery model with a robust professional ecosystem, enabling engineers to find co-builders, mentors, and collaborators with clinical precision.
 

@@ -1,12 +1,14 @@
-import express from "express";
+const express = require("express");
 const router = express.Router();
-import { userAuth } from "../middlewares/auth.js";
-import razorpayInstance from "../utils/razorpay.js";
-import Payment from "../models/payment.js";
-import { membershipAmount } from "../utils/constants.js";
-import crypto from "crypto";
-import User from "../models/user.js";
-import paymentService from "../services/paymentService.js";
+const { userAuth } = require("../middlewares/auth");
+const razorpayInstance = require("../utils/razorpay");
+const Payment = require("../models/payment");
+const { membershipAmount } = require("../utils/constants")
+const { validateWebhookSignature } = require('razorpay/dist/utils/razorpay-utils')
+const crypto = require("crypto");
+const User = require("../models/user");
+
+const paymentService = require("../services/paymentService");
 
 /**
  * Route to initiate a new premium subscription payment.
@@ -55,5 +57,5 @@ router.post("/payment/verify", userAuth, async (req, res, next) => {
     }
 });
 
-export default router;
+module.exports = router;
 
