@@ -67,11 +67,13 @@ export const apiSlice = createApi({
                 const PAGE_SIZE = 20;
                 const messages = response?.messages?.map((msg) => ({
                     _id: msg?._id,
-                    senderId: msg?.senderId?._id,
+                    senderId: msg?.senderId?._id || msg?.senderId, // Support both populated and raw IDs
                     firstName: msg?.senderId?.firstName,
                     lastName: msg?.senderId?.lastName,
                     photoUrl: msg?.senderId?.photoUrl,
                     text: msg?.text,
+                    messageType: msg?.messageType || "text",
+                    fileUrl: msg?.fileUrl,
                     status: "sent",
                     createdAt: msg?.createdAt
                 })) || [];
@@ -103,6 +105,14 @@ export const apiSlice = createApi({
         }),
 
         // Mutations (Actions that change data)
+        signChatUpload: builder.mutation({
+            query: () => ({
+                url: "/chat/sign-upload",
+                method: "POST",
+                credentials: "include",
+            }),
+        }),
+
         sendConnectionRequest: builder.mutation({
             query: ({ status, userId }) => ({
                 url: `/request/send/${status}/${userId}`,
@@ -152,5 +162,6 @@ export const {
     useSendConnectionRequestMutation,
     useReviewConnectionRequestMutation,
     useWithdrawConnectionRequestMutation,
-    useUpdateProfileMutation
+    useUpdateProfileMutation,
+    useSignChatUploadMutation
 } = apiSlice;

@@ -25,6 +25,9 @@
 - **Cursor-Based Pagination**: Uses `_id` cursors to fetch 20 messages at a time, ensuring the initial chat load is always < 200ms regardless of history size.
 - **Persistent Message Store**: De-embedded collection architecture for messages to bypass MongoDB's 16MB document limit and ensure infinite scalability.
 - **Visual Status Tracking**: Real-time "Pending", "Sent", and "Error" indicators for every message.
+- **Rich Media Support**: Integrated image messaging with direct-to-cloud signed uploads.
+- **Device Camera Integration**: Supports standard media picker for instant photo sharing and gallery selection.
+- **Direct-to-Cloud Architecture**: Frontend uploads media directly to Cloudinary using secure backend signatures, bypassing the main server for massive scalability.
 
 ### 👑 Premium Membership (Monetization)
 - **Tiered Plans**: Silver and Gold membership tiers with exclusive benefits.
@@ -39,8 +42,8 @@
 - **CORS Protection**: Strict cross-origin resource sharing policies.
 - **Session-Based Auth**: Secure authentication using cookies (`withCredentials: true`).
 - **Validation Layers**: Robust client-side and server-side input validation for all critical payloads.
-- **Cloudinary Integration**: Fully automated, high-performance cloud storage for developer profile photos.
-- **Client-Side Image Compression**: Smart frontend compression to max 300KB using `browser-image-compression` to optimize bandwidth and storage.
+- **Cloudinary Integration**: Fully automated, high-performance cloud storage for developer profile photos and chat media.
+- **Smart Image Compression**: Client-side optimization using `browser-image-compression` (< 500KB) for both profile photos and chat attachments to ensure ultra-fast uploads.
 - **Social OAuth 2.0 Integration**: One-click registration and login via Google and GitHub, powered by Passport.js.
 - **Smart Account Linking**: Automatically merges social logins with existing accounts if the email addresses match.
 - **Cross-Domain Token Exchange**: Production-safe OAuth flow using a dedicated token exchange endpoint, solving third-party cookie restrictions between Vercel and Render.
@@ -60,7 +63,7 @@
 - **Image Processing**: browser-image-compression (Smart max 300KB client-side optimization).
 
 ### Backend
-- **Engine**: Node.js & Express.js
+- **Engine**: Node.js & Express.js (**ES Modules / ESM**)
 - **Database**: MongoDB (Mongoose ODM)
 - **Cache & Security**: Upstash Redis (OTP storage & Speed-limiting)
 - **Real-Time**: Socket.io (Namespaced rooms for individual chats)
@@ -251,6 +254,7 @@ docker compose down --volumes    # Stop and remove containers + volumes
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | **GET** | `/api/chat/:targetUserId` | Fetch message history (Supports `?before=` cursor for infinite scroll) |
+| **POST** | `/api/chat/sign-upload` | Generate secure HMAC signature for direct media uploads |
 
 ### 💳 Payments & Premium
 | Method | Endpoint | Description |

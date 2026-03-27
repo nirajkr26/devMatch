@@ -89,7 +89,7 @@ const initializeSocket = (server) => {
         })
 
         // Listen for new chat messages with Acknowledgment (Optimistic UI)
-        socket.on("sendMessage", async ({ userId, targetUserId, text, tempId }, callback) => {
+        socket.on("sendMessage", async ({ userId, targetUserId, text, tempId, messageType = "text", fileUrl }, callback) => {
             try {
                 const roomId = getSecretRoomId(userId, targetUserId)
                 const { firstName, lastName } = socket.user;
@@ -100,6 +100,8 @@ const initializeSocket = (server) => {
                     firstName, 
                     lastName, 
                     text,
+                    messageType,
+                    fileUrl,
                     tempId // Shared for reconciliation if needed
                 });
 
@@ -118,7 +120,9 @@ const initializeSocket = (server) => {
                 const newMessage = new Message({
                     chatId: chat._id,
                     senderId: userId,
-                    text
+                    text,
+                    messageType,
+                    fileUrl
                 });
 
                 const savedMsg = await newMessage.save();

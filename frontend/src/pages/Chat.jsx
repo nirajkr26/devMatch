@@ -3,7 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { createSocketConnection } from '../utils/socket';
 import { useSelector } from "react-redux"
 import { ArrowLeftIcon, DirectMessageIcon, AttachmentIcon, PaperPlaneIcon } from '../utils/Icons';
-import { useGetChatQuery, useGetConnectionsQuery } from '../utils/apiSlice'
+import { useGetChatQuery, useGetConnectionsQuery, useSignChatUploadMutation } from '../utils/apiSlice'
+import imageCompression from 'browser-image-compression';
 
 const Chat = () => {
     const { targetUserId } = useParams();
@@ -13,6 +14,7 @@ const Chat = () => {
     const [targetUser, setTargetUser] = useState(null);
     const [before, setBefore] = useState("");
     const [initialLoad, setInitialLoad] = useState(true);
+    const [isUploading, setIsUploading] = useState(false);
 
     const user = useSelector(store => store.user);
     const connections = useSelector(store => store.connections);
@@ -20,6 +22,9 @@ const Chat = () => {
     const messagesEndRef = useRef(null);
     const sentinelRef = useRef(null);
     const chatContainerRef = useRef(null);
+    const fileInputRef = useRef(null);
+    
+    const [signChatUpload] = useSignChatUploadMutation();
     
     // For manual scroll anchoring
     const prevScrollHeightRef = useRef(0);
@@ -156,12 +161,14 @@ const Chat = () => {
         setSocket(newSocket);
         newSocket.emit("joinChat", { userId, targetUserId })
 
-        newSocket.on("messageReceived", ({ senderId, firstName, lastName, text, tempId }) => {
+        newSocket.on("messageReceived", ({ senderId, firstName, lastName, text, messageType, fileUrl, tempId }) => {
             setMessages((prevMessages) => [...prevMessages, {
                 senderId,
                 firstName,
                 lastName,
                 text,
+                messageType: messageType || "text",
+                fileUrl,
                 status: "sent",
                 createdAt: new Date()
             }]);
@@ -173,25 +180,90 @@ const Chat = () => {
         }
     }, [userId, targetUserId])
 
-    const sendMessage = () => {
-        if (!socket || !newMessage.trim()) return;
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file || !file.type.startsWith("image/")) return;
 
-        const tempId = crypto.randomUUID();
-        const msgText = newMessage;
+        try {
+            setIsUploading(true);
+            
+            // 1. Create a local preview for Optimistic UI
+            const localBlobUrl = URL.createObjectURL(file);
+            const tempId = crypto.randomUUID();
+
+            const optimisticMsg = {
+                _id: tempId,
+                senderId: userId,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                text: "",
+                messageType: "image",
+                fileUrl: localBlobUrl, // Use local blob for instant feedback
+                status: "pending",
+                createdAt: new Date()
+            };
+            setMessages(prev => [...prev, optimisticMsg]);
+
+            // 2. Perform compression using browser-image-compression (< 500KB)
+            const compressedBlob = await imageCompression(file, {
+                maxSizeMB: 0.5,
+                maxWidthOrHeight: 1200,
+                useWebWorker: true,
+                initialQuality: 0.7
+            });
+
+            // 3. Request Signature from Backend
+            const { data: signData } = await signChatUpload();
+            
+            // 4. Direct Upload to Cloudinary (No API Secret on frontend!)
+            const formData = new FormData();
+            formData.append("file", compressedBlob);
+            formData.append("api_key", signData.apiKey);
+            formData.append("timestamp", signData.timestamp);
+            formData.append("signature", signData.signature);
+            formData.append("folder", signData.folder);
+
+            const uploadRes = await fetch(
+                `https://api.cloudinary.com/v1_1/${signData.cloudName}/image/upload`,
+                { method: "POST", body: formData }
+            );
+            const uploadResult = await uploadRes.json();
+
+            // 5. Emit via WebSocket
+            sendMessage("image", uploadResult.secure_url, tempId);
+
+            // Clean up resources
+            URL.revokeObjectURL(localBlobUrl);
+            setIsUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+        } catch (err) {
+            console.error("Image upload failed:", err);
+            setIsUploading(false);
+        }
+    }
+
+    const sendMessage = (type = "text", fileUrl = null, existingTempId = null) => {
+        if (!socket || (type === "text" && !newMessage.trim())) return;
+
+        const tempId = existingTempId || crypto.randomUUID();
+        const msgText = type === "text" ? newMessage : "";
         
-        // 1. Optimistic Update (Immediate UI feedback)
-        const optimisticMsg = {
-            _id: tempId, // Temporary ID
-            senderId: userId,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            text: msgText,
-            status: "pending",
-            createdAt: new Date()
-        };
-
-        setMessages(prev => [...prev, optimisticMsg]);
-        setNewMessage("");
+        // 1. Optimistic Update (Only for text, image is already added)
+        if (type === "text") {
+            const optimisticMsg = {
+                _id: tempId,
+                senderId: userId,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                text: msgText,
+                messageType: type,
+                fileUrl: fileUrl,
+                status: "pending",
+                createdAt: new Date()
+            };
+            setMessages(prev => [...prev, optimisticMsg]);
+            setNewMessage("");
+        }
 
         // 2. Socket Emission with Acknowledgment Callback
         socket.emit("sendMessage", {
@@ -200,12 +272,14 @@ const Chat = () => {
             userId,
             targetUserId,
             text: msgText,
+            messageType: type,
+            fileUrl,
             tempId
         }, (ack) => {
             if (ack.status === "ok") {
-                // 3. Reconciliation (Update pending message with server ID)
+                // 3. Reconciliation (Update pending message with server ID and real URL)
                 setMessages(prev => prev.map(m => 
-                    m._id === ack.tempId ? { ...m, _id: ack._id, status: "sent" } : m
+                    m._id === ack.tempId ? { ...m, _id: ack._id, status: "sent", fileUrl: fileUrl || m.fileUrl } : m
                 ));
             } else {
                 // 4. Error Handling
@@ -297,9 +371,35 @@ const Chat = () => {
                                  </div>
                                  <div className={"chat-bubble py-3 px-5 shadow-xl leading-relaxed text-sm md:text-base transition-all " +
                                      (isSender
-                                         ? `bg-primary text-white rounded-br-none font-medium ${msg.status === "pending" ? "opacity-70 animate-pulse" : ""} ${msg.status === "error" ? "border-2 border-error !bg-error/10 text-error" : ""}`
+                                         ? `bg-primary text-white rounded-br-none font-medium ${msg.status === "pending" && msg.messageType === "text" ? "opacity-70 animate-pulse" : ""} ${msg.status === "error" ? "border-2 border-error !bg-error/10 text-error" : ""}`
                                          : "bg-base-300 text-base-content rounded-bl-none border border-base-200")}>
-                                     {msg.text}
+                                     
+                                     {msg.messageType === "image" ? (
+                                         <div className="relative group/img my-1">
+                                             <img 
+                                                 src={msg.fileUrl?.startsWith("blob:") 
+                                                     ? msg.fileUrl 
+                                                     : msg.fileUrl?.replace("/upload/", "/upload/w_600,c_limit,q_auto,f_auto/")
+                                                 } 
+                                                 alt="Shared media" 
+                                                 className="rounded-xl max-w-full sm:max-w-[18rem] cursor-zoom-in hover:brightness-110 transition-all duration-500 shadow-2xl border border-white/10"
+                                                 onLoad={() => {
+                                                     const container = chatContainerRef.current;
+                                                     if (container && container.scrollHeight - container.scrollTop - container.clientHeight < 400) {
+                                                         scrollToBottom();
+                                                     }
+                                                 }}
+                                             />
+                                             {msg.status === "pending" && (
+                                                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[2px] rounded-xl border border-white/20">
+                                                     <span className="loading loading-spinner text-white w-8 h-8"></span>
+                                                     <p className="text-[10px] font-black text-white uppercase tracking-widest mt-2 drop-shadow-md">Optimizing</p>
+                                                 </div>
+                                             )}
+                                         </div>
+                                     ) : (
+                                         msg.text
+                                     )}
                                  </div>
                             </div>
                         )
@@ -311,12 +411,24 @@ const Chat = () => {
             {/* Chat Input Area */}
             <div className='bg-base-300 p-4 md:p-6 border-t border-base-200'>
                 <div className='flex items-end gap-3 max-w-4xl mx-auto bg-base-100 rounded-[1.5rem] p-2 pr-3 border border-base-200 shadow-xl focus-within:ring-2 focus-within:ring-primary/20 transition-all'>
-                    <button className='btn btn-circle btn-ghost opacity-40 hover:opacity-100 hover:text-primary transition-all hidden sm:flex'>
+                    <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                    />
+                    <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        className='btn btn-circle btn-ghost opacity-40 hover:opacity-100 hover:text-primary transition-all hidden sm:flex'
+                        disabled={isUploading}
+                    >
                         <AttachmentIcon className="w-6 h-6" />
                     </button>
                     <textarea
                         rows="1"
                         value={newMessage}
+                        disabled={isUploading}
                         onKeyDown={(e) => {
                             if (e.key === "Enter" && !e.shiftKey) {
                                 e.preventDefault();
@@ -324,12 +436,13 @@ const Chat = () => {
                             }
                         }}
                         onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder="Share a thought..."
+                        placeholder={isUploading ? "Uploading media..." : "Share a thought..."}
                         className='flex-1 bg-transparent border-none focus:outline-none py-3 px-2 text-base-content placeholder:opacity-30 placeholder:font-bold placeholder:uppercase placeholder:text-[10px] placeholder:tracking-[0.2em] resize-none overflow-hidden max-h-32'
                     />
                     <button
-                        onClick={sendMessage}
-                        className={`btn btn-circle btn-primary shadow-lg shadow-primary/20 transition-all duration-300 ${!newMessage.trim() ? "opacity-20 scale-90" : "scale-110 active:scale-95"}`}
+                        onClick={() => sendMessage()}
+                        disabled={!newMessage.trim() || isUploading}
+                        className={`btn btn-circle btn-primary shadow-lg shadow-primary/20 transition-all duration-300 ${(!newMessage.trim() || isUploading) ? "opacity-20 scale-90" : "scale-110 active:scale-95"}`}
                     >
                         <PaperPlaneIcon className="w-5 h-5 translate-x-0.5" />
                     </button>

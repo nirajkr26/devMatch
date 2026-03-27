@@ -58,5 +58,37 @@ router.get("/chat/:targetUserId", userAuth, async (req, res, next) => {
     }
 })
 
+const cloudinary = require("../config/cloudinary");
 
-module.exports = router
+/**
+ * Route to generate a secure signature for direct Cloudinary uploads.
+ * This allows the frontend to upload media files directly to Cloudinary
+ * without the file binary hitting our backend, improving performance.
+ */
+router.post("/chat/sign-upload", userAuth, async (req, res, next) => {
+    try {
+        const timestamp = Math.round((new Date()).getTime() / 1000);
+        const folder = "devMatch/chat"; // Organized folder for shared media
+
+        // Generate the HMAC signature based on Cloudinary's requirements
+        const signature = cloudinary.utils.api_sign_request(
+            {
+                timestamp: timestamp,
+                folder: folder,
+            },
+            process.env.CLOUDINARY_API_SECRET
+        );
+
+        res.json({
+            signature,
+            apiKey: process.env.CLOUDINARY_API_KEY,
+            timestamp,
+            cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+            folder: folder
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+module.exports = router;

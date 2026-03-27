@@ -28,8 +28,15 @@ const messageSchema = new mongoose.Schema({
         required: true,
     },
     text: {
+        type: String, // Can be empty if it's just an image/file
+    },
+    messageType: {
         type: String,
-        required: true,
+        enum: ["text", "image", "file"],
+        default: "text",
+    },
+    fileUrl: {
+        type: String, // Link to Cloudinary or generic file storage
     }
 }, {
     timestamps: true // Track when each message was sent
