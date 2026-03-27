@@ -2,6 +2,7 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { DirectMessageIcon } from '../utils/Icons';
 import { useChat, ChatHeader, ChatInput, MessageBubble } from '../features/chat';
+import useDocumentTitle from '../hooks/useDocumentTitle';
 
 const Chat = () => {
     const { targetUserId } = useParams();
@@ -26,6 +27,8 @@ const Chat = () => {
         userId,
         user
     } = useChat(targetUserId);
+
+    useDocumentTitle(targetUser ? `Chat with ${targetUser.firstName}` : "Direct Message");
 
     // Scroll optimization for image loads
     const checkScrollAndScrollToBottom = () => {

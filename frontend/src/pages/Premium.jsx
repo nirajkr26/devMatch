@@ -4,10 +4,13 @@ import { BASE_URL } from "../utils/constant";
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { SimpleCheckIcon } from '../utils/Icons';
+import useDocumentTitle from '../hooks/useDocumentTitle';
 
 const Premium = () => {
     const [isPremium, setIsPremium] = useState(false);
     const user = useSelector((store) => store.user);
+
+    useDocumentTitle("Premium");
 
     useEffect(() => {
         if (user) setIsPremium(user?.isPremium);

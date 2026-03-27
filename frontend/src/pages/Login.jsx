@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth, AuthTabs, AuthForm, SocialLogin } from '../features/auth';
+import useDocumentTitle from '../hooks/useDocumentTitle';
 
 const Login = () => {
     const {
@@ -14,6 +15,8 @@ const Login = () => {
         toggleMode,
         navigate
     } = useAuth();
+
+    useDocumentTitle(isLogin ? "Login | Secure Access" : "Join devMatch | Create Account");
 
     return (
         <div className='flex items-center justify-center min-h-[80vh] px-4 py-10 bg-base-100'>

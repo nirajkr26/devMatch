@@ -7,8 +7,10 @@ import {
     RequestCard, 
     RequestsPagination 
 } from '../features/requests';
+import useDocumentTitle from '../hooks/useDocumentTitle';
 
 const Requests = () => {
+    useDocumentTitle("Review Invites");
     const {
         activeTab,
         setActiveTab,

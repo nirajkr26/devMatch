@@ -1,47 +1,101 @@
-import { AppLogo, GithubIcon, LinkedinIcon } from '../utils/Icons';
+import { AppLogo, GithubIcon, LinkedinIcon, CodeIcon, GlobeIcon, MailIcon } from '../utils/Icons';
 
 const Footer = () => {
     return (
-        <footer className="footer sm:footer-horizontal text-base-content items-center p-10 bg-base-300 border-t border-base-200">
-            <div className="max-w-7xl mx-auto w-full flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-left">
-                <aside className="flex flex-col gap-2">
-                    <div className="flex items-center justify-center md:justify-start gap-2">
-                        <AppLogo
-                            width={28}
-                            height={28}
-                            className="fill-primary transform hover:rotate-12 transition-transform"
-                        />
-                        <span className="text-2xl font-black tracking-tighter text-primary">devMatch</span>
-                    </div>
-                    <p className="max-w-xs opacity-60 text-sm">
-                        Building a curated space for developers to connect, code, and innovate together.
-                    </p>
-                    <p className="text-xs font-medium opacity-40 mt-2">
-                        Copyright © {new Date().getFullYear()} - All rights reserved.
-                    </p>
-                </aside>
+        <footer className="bg-base-300/50 backdrop-blur-xl border-t border-base-content/5 py-20 px-6 lg:px-8 relative overflow-hidden">
+            {/* Background Accent */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] -z-10"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-secondary/5 blur-[100px] -z-10"></div>
 
-                <nav className="flex flex-col gap-4">
-                    <h6 className="footer-title opacity-100 text-xs font-bold uppercase tracking-widest text-secondary">Connect with me</h6>
-                    <div className="flex gap-6 justify-center md:justify-start mt-1">
-                        <a
-                            href="https://github.com/nirajkr26/devMatch"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-base-content hover:text-primary transition-all duration-300 transform hover:-translate-y-1"
-                        >
-                            <GithubIcon width={28} height={28} className="fill-current" />
-                        </a>
-                        <a
-                            href="https://linkedin.com/in/nirajkr26"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-base-content hover:text-primary transition-all duration-300 transform hover:-translate-y-1"
-                        >
-                            <LinkedinIcon width={28} height={28} className="fill-current" />
-                        </a>
+            <div className="max-w-7xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-16 lg:gap-24 mb-16 items-start">
+                    {/* Brand Column */}
+                    <div className="space-y-8 text-center md:text-left">
+                        <div className="flex items-center justify-center md:justify-start gap-4">
+                            <div className="p-3 bg-primary/10 rounded-2xl border border-primary/20 shadow-xl shadow-primary/5">
+                                <AppLogo width={32} height={32} className="fill-primary animate-pulse" />
+                            </div>
+                            <span className="text-4xl font-black tracking-tightest uppercase text-base-content">
+                                dev<span className="text-primary italic">M</span>atch
+                            </span>
+                        </div>
+                        <p className="opacity-50 text-base leading-relaxed max-w-sm mx-auto md:mx-0 font-medium">
+                            The elite ecosystem for modern developers. Discover co-founders, swap tech stacks, and scale your professional circle with clinical precision.
+                        </p>
                     </div>
-                </nav>
+
+                    {/* Architect & Socials Column (Latest Sketch-aligned) */}
+                    <div className="flex flex-col items-center md:items-start gap-8">
+                        {/* Section Header per sketch */}
+                        <div className="w-fit">
+                            <h6 className="text-[10px] font-black uppercase tracking-[0.4em] text-secondary">The Architect</h6>
+                            <div className="h-0.5 w-full bg-secondary/30 mt-1 opacity-50"></div>
+                        </div>
+
+                        <div className="flex items-start gap-8 group">
+                            {/* Profile Image - Large Rounded Rectangle per sketch */}
+                            <div className="w-32 h-40 rounded-[2.5rem] bg-base-content/5 overflow-hidden border border-base-content/10 transition-all duration-700 shadow-2xl group-hover:border-primary/30 shrink-0">
+                                <img src="https://nirajkumar.vercel.app/assets/profileImg-Dg_W4rk-.jpg" alt="Niraj Kumar" className="w-full h-full object-cover" />
+                            </div>
+
+                            {/* Info Stack */}
+                            <div className="flex flex-col gap-5 justify-center py-2">
+                                <div>
+                                    <h6 className="text-3xl font-black uppercase tracking-tightest leading-tight text-base-content">
+                                        Niraj Kumar
+                                    </h6>
+                                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] opacity-40 mt-1">Full Stack Engineer</p>
+                                </div>
+
+                                {/* Circular Links - Single Horizontal Row per sketch */}
+                                <div className="flex flex-row gap-3 pt-2">
+                                    <a 
+                                        href="https://github.com/nirajkr26" 
+                                        target="_blank" 
+                                        className="w-11 h-11 rounded-full bg-base-content/5 hover:bg-primary/20 hover:text-primary border border-base-content/10 hover:border-primary/20 flex items-center justify-center transition-all duration-500 group shadow-lg"
+                                        title="GitHub"
+                                    >
+                                        <GithubIcon width={20} height={20} className="fill-current group-hover:scale-110 transition-transform" />
+                                    </a>
+                                    <a 
+                                        href="https://linkedin.com/in/nirajkr26" 
+                                        target="_blank" 
+                                        className="w-11 h-11 rounded-full bg-base-content/5 hover:bg-secondary/20 hover:text-secondary border border-base-content/10 hover:border-secondary/20 flex items-center justify-center transition-all duration-500 group shadow-lg"
+                                        title="LinkedIn"
+                                    >
+                                        <LinkedinIcon width={20} height={20} className="fill-current group-hover:scale-110 transition-transform" />
+                                    </a>
+                                    <a 
+                                        href="mailto:nirajkumargupta2642006@gmail.com" 
+                                        className="w-11 h-11 rounded-full bg-base-content/5 hover:bg-success/20 hover:text-success border border-base-content/10 hover:border-success/20 flex items-center justify-center transition-all duration-500 group shadow-lg"
+                                        title="Email Me"
+                                    >
+                                        <MailIcon width={20} height={20} className="text-current group-hover:scale-110 transition-transform" />
+                                    </a>
+                                    <a 
+                                        href="https://nirajkumar.vercel.app" 
+                                        target="_blank" 
+                                        className="w-11 h-11 rounded-full bg-base-content/5 hover:bg-accent/20 hover:text-accent border border-base-content/10 hover:border-accent/20 flex items-center justify-center transition-all duration-500 group shadow-lg"
+                                        title="Portfolio"
+                                    >
+                                        <GlobeIcon width={20} height={20} className="text-current group-hover:scale-110 transition-transform" />
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Footer Bottom */}
+                <div className="pt-12 border-t border-base-content/5 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="flex items-center gap-2 opacity-30 text-[9px] font-black uppercase tracking-[0.3em]">
+                        <CodeIcon className="h-4 w-4" />
+                        Built with Clinical Precision for Developers
+                    </div>
+                    <p className="text-[9px] font-black uppercase tracking-[0.3em] opacity-30">
+                        Copyright © {new Date().getFullYear()} devMatch Network
+                    </p>
+                </div>
             </div>
         </footer>
     );

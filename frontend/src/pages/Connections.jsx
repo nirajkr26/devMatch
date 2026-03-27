@@ -1,8 +1,10 @@
 import React from 'react';
-import { useConnections, ConnectionsLoadingState, ConnectionsEmptyState, ConnectionCard } from '../features/connections';
+import { useConnections, ConnectionCard, ConnectionsLoadingState, ConnectionsEmptyState } from '../features/connections';
+import useDocumentTitle from '../hooks/useDocumentTitle';
 
 const Connections = () => {
-    const { connections, isLoading } = useConnections();
+    useDocumentTitle("My Network");
+    const { connections, isLoading, refetch } = useConnections();
 
     if (isLoading) {
         return <ConnectionsLoadingState />;
@@ -44,4 +46,4 @@ const Connections = () => {
     )
 }
 
-export default Connections;
+export default Connections;

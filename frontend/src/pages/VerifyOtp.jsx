@@ -1,5 +1,6 @@
 import React from 'react';
 import { useVerifyOtp, VerifyOtpForm } from '../features/auth';
+import useDocumentTitle from '../hooks/useDocumentTitle';
 
 const VerifyOtp = () => {
     const {
@@ -15,6 +16,8 @@ const VerifyOtp = () => {
         loading,
         resending
     } = useVerifyOtp();
+
+    useDocumentTitle("Verify Account");
 
     return (
         <div className="min-h-[80vh] flex items-center justify-center px-4 bg-base-100">

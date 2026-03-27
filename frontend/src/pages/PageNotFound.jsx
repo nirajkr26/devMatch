@@ -1,7 +1,9 @@
 import React from 'react';
 import { Link } from "react-router-dom";
+import useDocumentTitle from '../hooks/useDocumentTitle';
 
 const PageNotFound = () => {
+    useDocumentTitle("Page Not Found");
     return (
         <div className="min-h-screen bg-base-100 flex flex-col items-center justify-center p-6 text-center">
             {/* Visual Element */}

@@ -2,7 +2,10 @@ import React from 'react';
 import Card from '../components/Card';
 import { useFeed, FeedLoadingState, FeedEmptyState } from '../features/feed';
 
+import useDocumentTitle from '../hooks/useDocumentTitle';
+
 const Feed = () => {
+  useDocumentTitle("Discovery");
   const { feed, isLoading, refetch } = useFeed();
 
   if (isLoading) {

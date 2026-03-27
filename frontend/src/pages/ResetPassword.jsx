@@ -2,8 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useResetPassword } from '../features/auth';
+import useDocumentTitle from '../hooks/useDocumentTitle';
 
 const ResetPassword = () => {
+    useDocumentTitle("Secure New Password");
     const { status, loading, onSubmit: submitHandler } = useResetPassword();
 
     const { register, handleSubmit, formState: { errors } } = useForm({
