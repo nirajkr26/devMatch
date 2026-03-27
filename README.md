@@ -63,7 +63,7 @@
 - **Image Processing**: browser-image-compression (Smart max 300KB client-side optimization).
 
 ### Backend
-- **Engine**: Node.js & Express.js (**ES Modules / ESM**)
+- **Engine**: Node.js & Express.js
 - **Database**: MongoDB (Mongoose ODM)
 - **Cache & Security**: Upstash Redis (OTP storage & Speed-limiting)
 - **Real-Time**: Socket.io (Namespaced rooms for individual chats)
@@ -90,13 +90,19 @@ backend/src/
 └── app.js          # Main entry point
 ```
 
-### Frontend Directory Structure
+### Frontend Directory Structure (Feature Folder Architecture)
 ```bash
 frontend/src/
-├── components/     # Reusable UI (Navbar, Card, Footer, EditProfile)
-├── pages/          # View Components (Landing, Feed, Connections, Chat, Premium)
-├── utils/          # Redux Slices, Constants, and Socket connection logic
-└── App.jsx         # Routing & Page Layout
+├── features/       # Domain-driven modules (Auth, Chat, Feed, Connections, Requests)
+│   ├── auth/       # Hooks and isolated UI components for authentication
+│   ├── chat/       # Complex RTK logic and optimistic UI chat components
+│   ├── connections/# Shared connection business logic
+│   ├── feed/       # Swiping and networking discovery hooks
+│   └── requests/   # Request management and tab/pagination logic
+├── components/     # Global, generic UI pieces and layouts
+├── pages/          # Thin Layout Wrappers integrating feature components
+├── utils/          # Redux Slices, API constants, and Socket logic
+└── App.jsx         # Application routing matrix
 ```
 
 ---

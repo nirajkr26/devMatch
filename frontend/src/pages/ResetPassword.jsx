@@ -1,52 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { BASE_URL } from '../utils/constant';
-
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { useResetPassword } from '../features/auth';
 
 const ResetPassword = () => {
-    const [searchParams] = useSearchParams();
-    const token = searchParams.get('token');
-    const navigate = useNavigate();
+    const { status, loading, onSubmit: submitHandler } = useResetPassword();
 
-    const [status, setStatus] = useState({ type: '', message: '' });
-    const [loading, setLoading] = useState(false);
-
-    const { register, handleSubmit, watch, formState: { errors } } = useForm({
+    const { register, handleSubmit, formState: { errors } } = useForm({
         defaultValues: {
             newPassword: '',
             confirmPassword: ''
         }
     });
 
-    useEffect(() => {
-        if (!token) {
-            navigate('/login');
-        }
-    }, [token, navigate]);
-
-    const onSubmit = async (data) => {
-        const { newPassword, confirmPassword } = data;
-
-        if (newPassword !== confirmPassword) {
-            setStatus({ type: 'error', message: "Passwords do not match." });
-            return;
-        }
-
-        setLoading(true);
-        setStatus({ type: '', message: '' });
-
-        try {
-            await axios.post(`${BASE_URL}/reset-password`, { token, newPassword });
-            setStatus({ type: 'success', message: 'Password updated successfully! Transitioning to login...' });
-            setTimeout(() => navigate('/login'), 2500);
-        } catch (err) {
-            setStatus({ type: 'error', message: err.response?.data?.message || 'Failed to reset password.' });
-        } finally {
-            setLoading(false);
-        }
-    };
+    const onSubmit = (data) => submitHandler(data);
 
     return (
         <div className="min-h-[80vh] flex items-center justify-center px-4 bg-base-100">

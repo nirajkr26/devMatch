@@ -1,53 +1,16 @@
-import React from 'react'
-import { useGetFeedQuery } from '../utils/apiSlice'
-import Card from '../components/Card'
+import React from 'react';
+import Card from '../components/Card';
+import { useFeed, FeedLoadingState, FeedEmptyState } from '../features/feed';
 
 const Feed = () => {
-  const { data, isLoading, refetch } = useGetFeedQuery();
-  const feed = data?.data;
+  const { feed, isLoading, refetch } = useFeed();
 
   if (isLoading) {
-    return (
-      <div className='flex flex-col items-center justify-center min-h-[60vh] gap-6 animate-fadeIn'>
-        <div className="card bg-base-300 w-full max-w-[380px] h-[600px] shadow-sm animate-pulse rounded-2xl flex flex-col overflow-hidden border border-base-200">
-          <div className="bg-base-200 h-2/3 w-full"></div>
-          <div className="p-10 space-y-6">
-            <div className="h-8 bg-base-200 rounded-full w-3/4"></div>
-            <div className="h-4 bg-base-200 rounded-full w-1/2"></div>
-            <div className="space-y-4 pt-8">
-              <div className="h-14 bg-base-200 rounded-xl"></div>
-              <div className="h-14 bg-base-200 rounded-xl"></div>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 opacity-40">
-          <span className="loading loading-spinner loading-md"></span>
-          <p className="font-bold tracking-widest uppercase text-xs">Curating Your Feed</p>
-        </div>
-      </div>
-    );
+    return <FeedLoadingState />;
   }
 
   if (!feed || feed.length === 0) {
-    return (
-      <div className='flex flex-col items-center justify-center min-h-[60vh] px-4 text-center group'>
-        <div className="mb-8 p-10 rounded-full bg-base-300 transform transition-transform group-hover:scale-110 duration-500 shadow-xl border border-base-200">
-          <span className="text-7xl" role="img" aria-label="Coffee cup icon">☕</span>
-        </div>
-        <h2 className='text-3xl md:text-5xl font-black mb-4 tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary'>
-          That's a wrap!
-        </h2>
-        <p className='text-lg md:text-xl opacity-60 max-w-sm leading-relaxed'>
-          You've seen everyone around you for now. Take a break, grab a coffee, and check back later for new developers!
-        </p>
-        <button
-          onClick={() => refetch()}
-          className="btn btn-primary btn-outline btn-lg mt-10 rounded-full border-2 hover:scale-105 transition-all shadow-xl px-12"
-        >
-          Refresh Feed
-        </button>
-      </div>
-    );
+    return <FeedEmptyState onRefetch={() => refetch()} />;
   }
 
   return (
@@ -69,4 +32,4 @@ const Feed = () => {
   )
 }
 
-export default Feed;
+export default Feed;
