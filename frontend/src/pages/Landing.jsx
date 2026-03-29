@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import useDocumentTitle from '../hooks/useDocumentTitle';
-import { Hero, FeatureShowcase, TechMarquee, LandingCTA } from '../features/landing';
+import useDocumentTitle from '@/hooks/useDocumentTitle';
+import { Hero, FeatureShowcase, TechMarquee, LandingCTA } from '@/features/landing';
 
 const Landing = () => {
     useDocumentTitle("Join the Elite");

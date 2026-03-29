@@ -1,8 +1,8 @@
 import React from 'react'
-import EditProfile from '../components/EditProfile'
+import EditProfile from '@/components/EditProfile'
 import { useSelector } from 'react-redux'
-import useDocumentTitle from '../hooks/useDocumentTitle';
-import { UserIcon } from '../utils/Icons';
+import useDocumentTitle from '@/hooks/useDocumentTitle';
+import { UserIcon } from '@/utils/Icons';
 
 const Profile = () => {
     const user = useSelector((store) => store.user);

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from "react-router-dom";
-import useDocumentTitle from '../hooks/useDocumentTitle';
+import useDocumentTitle from '@/hooks/useDocumentTitle';
 
 const PageNotFound = () => {
     useDocumentTitle("Page Not Found");

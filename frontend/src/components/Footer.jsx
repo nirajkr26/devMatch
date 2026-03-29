@@ -1,4 +1,4 @@
-import { AppLogo, GithubIcon, LinkedinIcon, CodeIcon, GlobeIcon, MailIcon } from '../utils/Icons';
+import { AppLogo, GithubIcon, LinkedinIcon, CodeIcon, GlobeIcon, MailIcon } from '@/utils/Icons';
 
 const Footer = () => {
     return (

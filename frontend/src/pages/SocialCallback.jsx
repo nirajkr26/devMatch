@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { addUser } from '../utils/userSlice';
+import { addUser } from '@/utils/userSlice';
 import axios from 'axios';
-import { BASE_URL } from '../utils/constant';
+import { BASE_URL } from '@/utils/constant';
 
 /**
  * SocialCallback - Handles the OAuth redirect from the backend.

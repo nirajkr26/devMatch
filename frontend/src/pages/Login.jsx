@@ -1,6 +1,6 @@
 import React from 'react';
-import { useAuth, AuthTabs, AuthForm, SocialLogin } from '../features/auth';
-import useDocumentTitle from '../hooks/useDocumentTitle';
+import { useAuth, AuthTabs, AuthForm, SocialLogin } from '@/features/auth';
+import useDocumentTitle from '@/hooks/useDocumentTitle';
 
 const Login = () => {
     const {
@@ -61,4 +61,4 @@ const Login = () => {
     );
 };
 
-export default Login;
+export default Login;

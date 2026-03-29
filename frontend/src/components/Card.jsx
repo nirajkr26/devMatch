@@ -1,7 +1,7 @@
 import React from 'react'
-import { useSendConnectionRequestMutation } from '../utils/apiSlice'
+import { useSendConnectionRequestMutation } from '@/utils/apiSlice'
 
-const Card = ({ user, isPreview = false }) => {
+const Card = ({ user, isPreview = false, onViewProfile }) => {
     const [sendRequest] = useSendConnectionRequestMutation();
 
     if (!user) return null;
@@ -18,7 +18,10 @@ const Card = ({ user, isPreview = false }) => {
     return (
         <div className="card bg-base-300 w-full max-w-[380px] h-[600px] shadow-2xl hover:shadow-primary/10 transition-all duration-500 border border-base-200 overflow-hidden group">
             {/* Image Section */}
-            <figure className="relative h-2/3 overflow-hidden">
+            <figure 
+                className={`relative h-2/3 overflow-hidden ${onViewProfile ? 'cursor-pointer' : ''}`}
+                onClick={() => onViewProfile && onViewProfile(user)}
+            >
                 <img
                     src={user?.photoUrl || "/default-avatar.png"}
                     alt={`${user?.firstName}'s profile`}
@@ -40,7 +43,19 @@ const Card = ({ user, isPreview = false }) => {
                 <div>
                     <div className="flex flex-col gap-1 mb-3">
                         <div className="flex items-end gap-2 flex-wrap">
-                            <h2 className="card-title text-2xl font-black text-base-content leading-none">{user.firstName} {user.lastName}</h2>
+                            <h2 
+                                className={`card-title text-2xl font-black text-base-content leading-none flex items-center gap-2 ${onViewProfile ? 'hover:text-primary transition-colors cursor-pointer group/name' : ''}`}
+                                onClick={() => onViewProfile && onViewProfile(user)}
+                            >
+                                {user.firstName} {user.lastName}
+                                {onViewProfile && (
+                                    <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center opacity-0 group-hover/name:opacity-100 transition-opacity">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-2.5 h-2.5 text-primary">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25" />
+                                        </svg>
+                                    </div>
+                                )}
+                            </h2>
                             <span className="text-xl opacity-50 font-medium leading-none pb-0.5">{user.age && `• ${user.age}`}</span>
                         </div>
                         {user.headline && (
@@ -49,7 +64,7 @@ const Card = ({ user, isPreview = false }) => {
                             </p>
                         )}
                     </div>
-                    
+
                     <p className="text-xs opacity-60 line-clamp-3 leading-relaxed mt-1 text-base-content italic px-1 transform hover:opacity-100 transition-opacity">
                         "{user.about || "Architecting tomorrow's code today."}"
                     </p>

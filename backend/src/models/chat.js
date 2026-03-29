@@ -37,6 +37,9 @@ const messageSchema = new mongoose.Schema({
     },
     fileUrl: {
         type: String, // Link to Cloudinary or generic file storage
+    },
+    fileName: {
+        type: String,
     }
 }, {
     timestamps: true // Track when each message was sent
@@ -47,4 +50,4 @@ messageSchema.index({ chatId: 1, createdAt: -1 });
 
 const Message = mongoose.model("Message", messageSchema);
 
-module.exports = { Chat, Message };
+module.exports = { Chat, Message };

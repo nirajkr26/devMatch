@@ -1,5 +1,5 @@
 import React from 'react';
-import { BASE_URL } from '../../../utils/constant';
+import { BASE_URL } from '@/utils/constant';
 
 export const SocialLogin = () => {
     return (

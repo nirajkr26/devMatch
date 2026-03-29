@@ -74,6 +74,7 @@ export const apiSlice = createApi({
                     text: msg?.text,
                     messageType: msg?.messageType || "text",
                     fileUrl: msg?.fileUrl,
+                    fileName: msg?.fileName,
                     status: "sent",
                     createdAt: msg?.createdAt
                 })) || [];

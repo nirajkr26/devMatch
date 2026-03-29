@@ -6,8 +6,8 @@ import {
     RequestsHeader, 
     RequestCard, 
     RequestsPagination 
-} from '../features/requests';
-import useDocumentTitle from '../hooks/useDocumentTitle';
+} from '@/features/requests';
+import useDocumentTitle from '@/hooks/useDocumentTitle';
 
 const Requests = () => {
     useDocumentTitle("Review Invites");
@@ -78,4 +78,4 @@ const Requests = () => {
     );
 };
 
-export default Requests;
+export default Requests;

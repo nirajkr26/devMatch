@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MessageIcon } from '../../../utils/Icons';
+import { MessageIcon } from '@/utils/Icons';
 
 export const ConnectionCard = ({ connection }) => {
     const { _id, firstName, lastName, age, gender, about, photoUrl, skills } = connection;

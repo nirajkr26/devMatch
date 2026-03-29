@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { useForgotPassword } from '../features/auth';
-import useDocumentTitle from '../hooks/useDocumentTitle';
+import { useForgotPassword } from '@/features/auth';
+import useDocumentTitle from '@/hooks/useDocumentTitle';
 
 const ForgotPassword = () => {
     useDocumentTitle("Account Recovery");

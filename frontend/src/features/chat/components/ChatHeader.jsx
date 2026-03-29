@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeftIcon } from '../../../utils/Icons';
+import { ArrowLeftIcon } from '@/utils/Icons';
 
 export const ChatHeader = ({ targetUser }) => {
     return (

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { BASE_URL } from '../../../utils/constant';
+import { BASE_URL } from '@/utils/constant';
 
 export const useResetPassword = () => {
     const [searchParams] = useSearchParams();

@@ -1,6 +1,6 @@
 import React from 'react';
 import TechnicalActivity from './TechnicalActivity';
-import { GithubIcon, LinkedinIcon, GlobeIcon, MailIcon, CodeIcon, LeetCodeIcon } from '../../../utils/Icons';
+import { GithubIcon, LinkedinIcon, GlobeIcon, MailIcon, CodeIcon, LeetCodeIcon } from '@/utils/Icons';
 
 const ProfileCV = ({ user, onEdit }) => {
     return (
@@ -92,6 +92,7 @@ const ProfileCV = ({ user, onEdit }) => {
                     <TechnicalActivity 
                         githubUsername={user.githubUsername} 
                         leetcodeUsername={user.leetcodeUsername} 
+                        isOwnProfile={!!onEdit}
                     />
 
                     {/* Bottom Aesthetic Footer */}

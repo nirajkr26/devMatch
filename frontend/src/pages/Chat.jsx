@@ -1,11 +1,12 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { DirectMessageIcon } from '../utils/Icons';
-import { useChat, ChatHeader, ChatInput, MessageBubble } from '../features/chat';
-import useDocumentTitle from '../hooks/useDocumentTitle';
+import { DirectMessageIcon } from '@/utils/Icons';
+import { useChat, ChatHeader, ChatInput, MessageBubble } from '@/features/chat';
+import useDocumentTitle from '@/hooks/useDocumentTitle';
 
 const Chat = () => {
     const { targetUserId } = useParams();
+    const [lightboxImageUrl, setLightboxImageUrl] = React.useState(null);
     
     // Decoupled Logic: The state, RTK Queries, Socket and optimizations all happen inside this hook.
     const {
@@ -17,6 +18,7 @@ const Chat = () => {
         isLoading,
         hasMore,
         isUploading,
+        uploadError,
         chatContainerRef,
         sentinelRef,
         messagesEndRef,
@@ -37,6 +39,17 @@ const Chat = () => {
             scrollToBottom();
         }
     };
+
+    React.useEffect(() => {
+        if (!lightboxImageUrl) return;
+        const handleEscape = (e) => {
+            if (e.key === "Escape") {
+                setLightboxImageUrl(null);
+            }
+        };
+        window.addEventListener("keydown", handleEscape);
+        return () => window.removeEventListener("keydown", handleEscape);
+    }, [lightboxImageUrl]);
 
     return (
         <div className='w-full max-w-5xl mx-auto md:my-6 h-[85vh] md:h-[80vh] flex flex-col shadow-2xl bg-base-300 md:rounded-[2.5rem] overflow-hidden border border-base-200'>
@@ -78,6 +91,7 @@ const Chat = () => {
                                 userPhotoUrl={user?.photoUrl}
                                 targetUserPhotoUrl={targetUser?.photoUrl}
                                 onImageLoad={checkScrollAndScrollToBottom}
+                                onImageClick={setLightboxImageUrl}
                             />
                         )
                     })
@@ -90,12 +104,33 @@ const Chat = () => {
                 fileInputRef={fileInputRef}
                 handleFileUpload={handleFileUpload}
                 isUploading={isUploading}
+                uploadError={uploadError}
                 newMessage={newMessage}
                 setNewMessage={setNewMessage}
                 sendMessage={sendMessage}
             />
+
+            {lightboxImageUrl && (
+                <div
+                    className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4"
+                    onClick={() => setLightboxImageUrl(null)}
+                >
+                    <button
+                        className="btn btn-sm btn-circle absolute top-4 right-4"
+                        onClick={() => setLightboxImageUrl(null)}
+                    >
+                        X
+                    </button>
+                    <img
+                        src={lightboxImageUrl}
+                        alt="Full size preview"
+                        className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            )}
         </div>
     )
 }
 
-export default Chat;
+export default Chat;

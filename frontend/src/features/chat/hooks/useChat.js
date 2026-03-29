@@ -1,11 +1,12 @@
 import { useEffect, useState, useRef } from 'react';
 import { useSelector } from "react-redux";
-import { createSocketConnection } from '../../../utils/socket';
-import { useGetChatQuery, useGetConnectionsQuery, useSignChatUploadMutation } from '../../../utils/apiSlice';
+import { createSocketConnection } from '@/utils/socket';
+import { useGetChatQuery, useGetConnectionsQuery, useSignChatUploadMutation } from '@/utils/apiSlice';
 import imageCompression from 'browser-image-compression';
 import React from 'react';
 
 export const useChat = (targetUserId) => {
+    const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
     const [socket, setSocket] = useState(null);
@@ -13,6 +14,7 @@ export const useChat = (targetUserId) => {
     const [before, setBefore] = useState("");
     const [initialLoad, setInitialLoad] = useState(true);
     const [isUploading, setIsUploading] = useState(false);
+    const [uploadError, setUploadError] = useState("");
 
     const user = useSelector(store => store.user);
     const connections = useSelector(store => store.connections);
@@ -101,6 +103,7 @@ export const useChat = (targetUserId) => {
         setMessages([]);
         setBefore("");
         setInitialLoad(true);
+        setUploadError("");
         prevMessagesLenRef.current = 0;
         prevScrollHeightRef.current = 0;
         setTargetUser(null);
@@ -137,6 +140,14 @@ export const useChat = (targetUserId) => {
         }
     }, [targetUserId, connections, chatMessages, sessionConnections]);
 
+    useEffect(() => {
+        if (!uploadError) return;
+        const timer = setTimeout(() => {
+            setUploadError("");
+        }, 3000);
+        return () => clearTimeout(timer);
+    }, [uploadError]);
+
     // Socket Connection Setup
     useEffect(() => {
         if (!userId || !targetUserId) return;
@@ -145,7 +156,7 @@ export const useChat = (targetUserId) => {
         setSocket(newSocket);
         newSocket.emit("joinChat", { userId, targetUserId });
 
-        newSocket.on("messageReceived", ({ senderId, firstName, lastName, text, messageType, fileUrl, tempId }) => {
+        newSocket.on("messageReceived", ({ senderId, firstName, lastName, text, messageType, fileUrl, fileName, tempId }) => {
             setMessages((prevMessages) => [...prevMessages, {
                 senderId,
                 firstName,
@@ -153,6 +164,7 @@ export const useChat = (targetUserId) => {
                 text,
                 messageType: messageType || "text",
                 fileUrl,
+                fileName,
                 status: "sent",
                 createdAt: new Date()
             }]);
@@ -166,13 +178,24 @@ export const useChat = (targetUserId) => {
 
     const handleFileUpload = async (e) => {
         const file = e.target.files[0];
-        if (!file || !file.type.startsWith("image/")) return;
+        if (!file) return;
+        setUploadError("");
+        if (file.size > MAX_FILE_SIZE_BYTES) {
+            setUploadError("Please upload a file smaller than 5 MB.");
+            if (fileInputRef.current) fileInputRef.current.value = "";
+            return;
+        }
+
+        let tempId = null;
+        let localBlobUrl = null;
 
         try {
             setIsUploading(true);
             
-            const localBlobUrl = URL.createObjectURL(file);
-            const tempId = crypto.randomUUID();
+            localBlobUrl = URL.createObjectURL(file);
+            tempId = crypto.randomUUID();
+            const isImage = file.type.startsWith("image/");
+            const messageType = isImage ? "image" : "file";
 
             const optimisticMsg = {
                 _id: tempId,
@@ -180,48 +203,67 @@ export const useChat = (targetUserId) => {
                 firstName: user.firstName,
                 lastName: user.lastName,
                 text: "",
-                messageType: "image",
+                messageType,
                 fileUrl: localBlobUrl,
+                fileName: file.name,
                 status: "pending",
                 createdAt: new Date()
             };
             setMessages(prev => [...prev, optimisticMsg]);
 
-            const compressedBlob = await imageCompression(file, {
-                maxSizeMB: 0.5,
-                maxWidthOrHeight: 1200,
-                useWebWorker: true,
-                initialQuality: 0.7
-            });
+            let fileToUpload = file;
+            if (isImage) {
+                fileToUpload = await imageCompression(file, {
+                    maxSizeMB: 0.5,
+                    maxWidthOrHeight: 1200,
+                    useWebWorker: true,
+                    initialQuality: 0.7
+                });
+            }
 
             const { data: signData } = await signChatUpload();
             
             const formData = new FormData();
-            formData.append("file", compressedBlob);
+            formData.append("file", fileToUpload, file.name);
             formData.append("api_key", signData.apiKey);
             formData.append("timestamp", signData.timestamp);
             formData.append("signature", signData.signature);
             formData.append("folder", signData.folder);
 
+            const uploadEndpoint = isImage ? "image/upload" : "raw/upload";
             const uploadRes = await fetch(
-                `https://api.cloudinary.com/v1_1/${signData.cloudName}/image/upload`,
+                `https://api.cloudinary.com/v1_1/${signData.cloudName}/${uploadEndpoint}`,
                 { method: "POST", body: formData }
             );
+            if (!uploadRes.ok) {
+                throw new Error("Failed to upload file to Cloudinary");
+            }
             const uploadResult = await uploadRes.json();
 
-            sendMessage("image", uploadResult.secure_url, tempId);
+            sendMessage(messageType, uploadResult.secure_url, tempId, file.name);
 
             URL.revokeObjectURL(localBlobUrl);
             setIsUploading(false);
             if (fileInputRef.current) fileInputRef.current.value = "";
         } catch (err) {
-            console.error("Image upload failed:", err);
+            console.error("File upload failed:", err);
+            setUploadError("Upload failed. Please try again.");
+            if (tempId) {
+                setMessages(prev => prev.filter(m => m._id !== tempId));
+            }
+            if (localBlobUrl) {
+                URL.revokeObjectURL(localBlobUrl);
+            }
             setIsUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = "";
         }
     }
 
-    const sendMessage = (type = "text", fileUrl = null, existingTempId = null) => {
+    const sendMessage = (type = "text", fileUrl = null, existingTempId = null, fileName = null) => {
         if (!socket || (type === "text" && !newMessage.trim())) return;
+        if (type === "text") {
+            setUploadError("");
+        }
 
         const tempId = existingTempId || crypto.randomUUID();
         const msgText = type === "text" ? newMessage : "";
@@ -235,6 +277,7 @@ export const useChat = (targetUserId) => {
                 text: msgText,
                 messageType: type,
                 fileUrl: fileUrl,
+                fileName,
                 status: "pending",
                 createdAt: new Date()
             };
@@ -250,11 +293,12 @@ export const useChat = (targetUserId) => {
             text: msgText,
             messageType: type,
             fileUrl,
+            fileName,
             tempId
         }, (ack) => {
             if (ack.status === "ok") {
                 setMessages(prev => prev.map(m => 
-                    m._id === ack.tempId ? { ...m, _id: ack._id, status: "sent", fileUrl: fileUrl || m.fileUrl } : m
+                    m._id === ack.tempId ? { ...m, _id: ack._id, status: "sent", fileUrl: fileUrl || m.fileUrl, fileName: fileName || m.fileName } : m
                 ));
             } else {
                 setMessages(prev => prev.map(m => 
@@ -273,6 +317,7 @@ export const useChat = (targetUserId) => {
         isLoading,
         hasMore,
         isUploading,
+        uploadError,
         chatContainerRef,
         sentinelRef,
         messagesEndRef,

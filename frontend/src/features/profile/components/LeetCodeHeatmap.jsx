@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityCalendar } from 'react-activity-calendar';
-import { BASE_URL } from '../../../utils/constant';
+import { BASE_URL } from '@/utils/constant';
 import axios from 'axios';
 
 const theme = {

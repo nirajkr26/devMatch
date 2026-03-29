@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
-import { BASE_URL } from "../utils/constant";
+import { BASE_URL } from "@/utils/constant";
 import axios from "axios";
-import { removeUser } from "../utils/userSlice";
-import { apiSlice } from "../utils/apiSlice";
-import { SunIcon, MoonIcon } from "../utils/Icons";
+import { removeUser } from "@/utils/userSlice";
+import { apiSlice } from "@/utils/apiSlice";
+import { SunIcon, MoonIcon } from "@/utils/Icons";
 
 const Navbar = () => {
     const user = useSelector((store) => store.user);
@@ -108,7 +108,6 @@ const Navbar = () => {
                                     <p className="text-sm font-black truncate">{user.firstName} {user.lastName}</p>
                                 </div>
                                 <li className="lg:hidden"><Link to="/feed" className="py-3 font-bold">Feed</Link></li>
-                                <li className="lg:hidden"><Link to="/portfolio" className="py-3 font-bold">Portfolio</Link></li>
                                 <li className="lg:hidden"><Link to="/connections" className="py-3 font-bold">Connections</Link></li>
                                 <li className="lg:hidden"><Link to="/requests" className="py-3 font-bold">Requests</Link></li>
                                 <li><Link to="/portfolio" className="py-3 font-bold">Portfolio</Link></li>

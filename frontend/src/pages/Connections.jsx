@@ -1,6 +1,6 @@
 import React from 'react';
-import { useConnections, ConnectionCard, ConnectionsLoadingState, ConnectionsEmptyState } from '../features/connections';
-import useDocumentTitle from '../hooks/useDocumentTitle';
+import { useConnections, ConnectionCard, ConnectionsLoadingState, ConnectionsEmptyState } from '@/features/connections';
+import useDocumentTitle from '@/hooks/useDocumentTitle';
 
 const Connections = () => {
     useDocumentTitle("My Network");

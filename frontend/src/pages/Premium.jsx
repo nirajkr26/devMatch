@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import axios from "axios";
-import { BASE_URL } from "../utils/constant";
+import { BASE_URL } from "@/utils/constant";
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { SimpleCheckIcon } from '../utils/Icons';
-import useDocumentTitle from '../hooks/useDocumentTitle';
+import { SimpleCheckIcon } from '@/utils/Icons';
+import useDocumentTitle from '@/hooks/useDocumentTitle';
 
 const Premium = () => {
     const [isPremium, setIsPremium] = useState(false);

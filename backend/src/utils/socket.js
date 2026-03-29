@@ -89,19 +89,29 @@ const initializeSocket = (server) => {
         })
 
         // Listen for new chat messages with Acknowledgment (Optimistic UI)
-        socket.on("sendMessage", async ({ userId, targetUserId, text, tempId, messageType = "text", fileUrl }, callback) => {
+        socket.on("sendMessage", async ({ userId, targetUserId, text, tempId, messageType = "text", fileUrl, fileName }, callback) => {
             try {
                 const roomId = getSecretRoomId(userId, targetUserId)
                 const { firstName, lastName } = socket.user;
+                const normalizedType = ["text", "image", "file"].includes(messageType) ? messageType : "text";
+                const trimmedText = typeof text === "string" ? text.trim() : "";
+
+                if (normalizedType === "text" && !trimmedText) {
+                    throw new Error("Message text is required.");
+                }
+                if ((normalizedType === "image" || normalizedType === "file") && !fileUrl) {
+                    throw new Error("File URL is required for media messages.");
+                }
 
                 // 1. Prioritize Broadcast to RECIPIENT (Exclude sender since they have it optimistically)
                 socket.to(roomId).emit("messageReceived", { 
                     senderId: userId, 
                     firstName, 
                     lastName, 
-                    text,
-                    messageType,
+                    text: normalizedType === "text" ? trimmedText : "",
+                    messageType: normalizedType,
                     fileUrl,
+                    fileName,
                     tempId // Shared for reconciliation if needed
                 });
 
@@ -120,9 +130,10 @@ const initializeSocket = (server) => {
                 const newMessage = new Message({
                     chatId: chat._id,
                     senderId: userId,
-                    text,
-                    messageType,
-                    fileUrl
+                    text: normalizedType === "text" ? trimmedText : "",
+                    messageType: normalizedType,
+                    fileUrl,
+                    fileName
                 });
 
                 const savedMsg = await newMessage.save();

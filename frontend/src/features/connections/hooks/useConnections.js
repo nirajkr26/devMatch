@@ -1,4 +1,4 @@
-import { useGetConnectionsQuery } from '../../../utils/apiSlice';
+import { useGetConnectionsQuery } from '@/utils/apiSlice';
 
 export const useConnections = () => {
     const { data, isLoading } = useGetConnectionsQuery();

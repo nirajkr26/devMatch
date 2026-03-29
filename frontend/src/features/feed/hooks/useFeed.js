@@ -1,4 +1,4 @@
-import { useGetFeedQuery } from '../../../utils/apiSlice'
+import { useGetFeedQuery } from '@/utils/apiSlice'
 
 export const useFeed = () => {
   const { data, isLoading, refetch } = useGetFeedQuery();

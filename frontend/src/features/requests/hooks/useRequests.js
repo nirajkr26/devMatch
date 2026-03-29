@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useGetRequestsQuery, useGetSentRequestsQuery, useReviewConnectionRequestMutation, useWithdrawConnectionRequestMutation } from '../../../utils/apiSlice';
+import { useGetRequestsQuery, useGetSentRequestsQuery, useReviewConnectionRequestMutation, useWithdrawConnectionRequestMutation } from '@/utils/apiSlice';
 
 export const useRequests = () => {
     const [activeTab, setActiveTab] = useState('received');

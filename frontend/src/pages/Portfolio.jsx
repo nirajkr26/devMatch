@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import useDocumentTitle from '../hooks/useDocumentTitle';
-import ProfileCV from '../features/profile/components/ProfileCV';
+import useDocumentTitle from '@/hooks/useDocumentTitle';
+import ProfileCV from '@/features/profile/components/ProfileCV';
 
 const Portfolio = () => {
     const user = useSelector((store) => store.user);

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { BASE_URL } from '../../../utils/constant';
+import { BASE_URL } from '@/utils/constant';
 
 export const useVerifyOtp = () => {
     const [otp, setOtp] = useState(['', '', '', '', '', '']);

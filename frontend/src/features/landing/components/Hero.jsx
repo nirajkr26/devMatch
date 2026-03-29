@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRightIcon } from '../../../utils/Icons';
+import { ArrowRightIcon } from '@/utils/Icons';
 
 export const Hero = ({ user }) => {
     return (

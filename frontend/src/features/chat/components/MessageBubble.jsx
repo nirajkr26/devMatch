@@ -1,6 +1,17 @@
 import React from 'react';
 
-export const MessageBubble = ({ msg, isSender, userPhotoUrl, targetUserPhotoUrl, onImageLoad }) => {
+export const MessageBubble = ({ msg, isSender, userPhotoUrl, targetUserPhotoUrl, onImageLoad, onImageClick }) => {
+    const resolveFileName = () => {
+        if (msg.fileName) return msg.fileName;
+        if (!msg.fileUrl) return "file";
+        try {
+            const pathname = new URL(msg.fileUrl).pathname;
+            return decodeURIComponent(pathname.split("/").pop() || "file");
+        } catch {
+            return "file";
+        }
+    };
+
     return (
         <div className={"chat " + (isSender ? "chat-end" : "chat-start") + " group animate-fadeInUp"}>
             <div className="chat-image avatar">
@@ -37,6 +48,7 @@ export const MessageBubble = ({ msg, isSender, userPhotoUrl, targetUserPhotoUrl,
                             alt="Shared media" 
                             className="rounded-xl max-w-full sm:max-w-[18rem] cursor-zoom-in hover:brightness-110 transition-all duration-500 shadow-2xl border border-white/10"
                             onLoad={onImageLoad}
+                            onClick={() => msg.fileUrl && onImageClick?.(msg.fileUrl)}
                         />
                         {msg.status === "pending" && (
                             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[2px] rounded-xl border border-white/20">
@@ -45,6 +57,16 @@ export const MessageBubble = ({ msg, isSender, userPhotoUrl, targetUserPhotoUrl,
                             </div>
                         )}
                     </div>
+                ) : msg.messageType === "file" ? (
+                    <a
+                        href={msg.fileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 underline underline-offset-2 break-all"
+                    >
+                        <span>Download</span>
+                        <span>{resolveFileName()}</span>
+                    </a>
                 ) : (
                     msg.text
                 )}

@@ -1,6 +1,6 @@
 import React from 'react';
-import { useVerifyOtp, VerifyOtpForm } from '../features/auth';
-import useDocumentTitle from '../hooks/useDocumentTitle';
+import { useVerifyOtp, VerifyOtpForm } from '@/features/auth';
+import useDocumentTitle from '@/hooks/useDocumentTitle';
 
 const VerifyOtp = () => {
     const {
