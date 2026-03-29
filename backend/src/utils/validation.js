@@ -19,7 +19,7 @@ const validateSignUpData = (req) => {
 
 // Logic to ensure profile updates are both permitted (white-listed fields) and valid
 const validateProfileEditData = (req) => {
-    const allowedEditFields = ["firstName", "lastName", "photoUrl", "gender", "about", "age", "skills"];
+    const allowedEditFields = ["firstName", "lastName", "photoUrl", "gender", "about", "age", "skills", "githubUsername", "leetcodeUsername", "linkedinUrl", "portfolioUrl", "headline"];
 
     // Check if any non-permitted fields are presence in the body
     const isAllowed = Object.keys(req.body).every(field => allowedEditFields.includes(field));

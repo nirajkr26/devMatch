@@ -38,12 +38,20 @@ const Card = ({ user, isPreview = false }) => {
             {/* Content Section */}
             <div className="card-body p-6 flex flex-col justify-between">
                 <div>
-                    <div className="flex items-end gap-2 mb-1 flex-wrap">
-                        <h2 className="card-title text-2xl font-black text-base-content">{user.firstName} {user.lastName}</h2>
-                        <span className="text-xl opacity-50 font-medium pb-0.5">{user.age && `• ${user.age}`}</span>
+                    <div className="flex flex-col gap-1 mb-3">
+                        <div className="flex items-end gap-2 flex-wrap">
+                            <h2 className="card-title text-2xl font-black text-base-content leading-none">{user.firstName} {user.lastName}</h2>
+                            <span className="text-xl opacity-50 font-medium leading-none pb-0.5">{user.age && `• ${user.age}`}</span>
+                        </div>
+                        {user.headline && (
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/70 italic mt-1">
+                                {user.headline}
+                            </p>
+                        )}
                     </div>
-                    <p className="text-sm opacity-80 line-clamp-3 leading-relaxed mt-2 text-base-content/80">
-                        {user.about || "This developer is keeping their bio a mystery... but they're ready to build!"}
+                    
+                    <p className="text-xs opacity-60 line-clamp-3 leading-relaxed mt-1 text-base-content italic px-1 transform hover:opacity-100 transition-opacity">
+                        "{user.about || "Architecting tomorrow's code today."}"
                     </p>
 
                     {/* Skills Badges */}

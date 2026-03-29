@@ -19,6 +19,14 @@
 - **Request Withdrawal**: Instant "Unsend" capability for pending invitations to maintain discovery control.
 - **Optimized Pagination**: High-performance data segmentation for Feed, Connections, and Request lists to ensure smooth scaling.
 
+### 🏆 Master Portfolio & Technical CV
+- **Dedicated Professional Identity**: Independent `/portfolio` route providing a high-impact, full-screen technical CV.
+- **Real-Time Activity Pulse**: Integrated **GitHub** and **LeetCode** activity heatmaps (contribution calendars) for instant technical proof.
+- **Custom GraphQL Proxy**: High-performance backend proxy (`/api/leetcode`) to fetch LeetCode data securely and bypass CORS restrictions.
+- **Dynamic Identity Linking**: Automated social reels for LinkedIn, LeetCode, GitHub, and Personal Portfolios that update in real-time.
+- **Professional Headline Engine**: Dynamic role-based headlines (e.g., "Frontend Architect", "Cloud Engineer") that sync across the global feed and CV.
+- **Aesthetic Branding**: Premium glassmorphic design system using the "Elite Developer" dark-mode palette.
+
 ### 💬 Real-Time Communication (High-Performance Engine)
 - **WhatsApp-Style Optimistic UI**: Messages appear instantly (under 50ms) in the sender's UI. The system reconciles the local state with the server via Socket.io acknowledgments.
 - **Reverse Infinite Scroll**: High-performance "load-more" logic for legacy messages using a "Sentinel" Observer. 
@@ -93,11 +101,11 @@ backend/src/
 ### Frontend Directory Structure (Feature Folder Architecture)
 ```bash
 frontend/src/
-├── features/       # Domain-driven modules (Auth, Chat, Feed, Connections, Requests)
+├── features/       # Domain-driven modules (Auth, Chat, Feed, Connections, Requests, Profile)
 │   ├── auth/       # Hooks and isolated UI components for authentication
 │   ├── chat/       # Complex RTK logic and optimistic UI chat components
-│   ├── connections/# Shared connection business logic
 │   ├── feed/       # Swiping and networking discovery hooks
+│   ├── profile/    # Master Portfolio, LeetCode & GitHub Activity Pulses
 │   └── requests/   # Request management and tab/pagination logic
 ├── components/     # Global, generic UI pieces and layouts
 ├── pages/          # Thin Layout Wrappers integrating feature components
@@ -256,11 +264,12 @@ docker compose down --volumes    # Stop and remove containers + volumes
 | **POST** | `/api/request/review/:status/:id` | Review pending request (status: `accepted` / `rejected`) |
 | **DELETE** | `/api/request/withdraw/:id` | Withdraw / Unsend a pending sent request |
 
-### 💬 Messaging
+### 💬 Messaging & Technical Pulse
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | **GET** | `/api/chat/:targetUserId` | Fetch message history (Supports `?before=` cursor for infinite scroll) |
 | **POST** | `/api/chat/sign-upload` | Generate secure HMAC signature for direct media uploads |
+| **POST** | `/api/leetcode` | GraphQL Proxy to fetch real-time LeetCode submissions & activity |
 
 ### 💳 Payments & Premium
 | Method | Endpoint | Description |

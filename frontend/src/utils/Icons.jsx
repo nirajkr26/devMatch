@@ -127,8 +127,8 @@ export const TrashIcon = ({ className = "" }) => (
     </svg>
 );
 
-export const CodeIcon = ({ className = "" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+export const CodeIcon = ({ className = "", width = 24, height = 24 }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" width={width} height={height} viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" />
     </svg>
 );
@@ -146,5 +146,19 @@ export const ArrowRightIcon = ({ className = "", strokeWidth = 3 }) => (
 export const MailIcon = ({ className = "" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+    </svg>
+);
+
+export const LeetCodeIcon = ({ className = "", width = 24, height = 24 }) => (
+    <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        width={width} 
+        height={height} 
+        viewBox="0 0 24 24" 
+        className={className} 
+        fill="currentColor"
+    >
+        <path d="M13.483 0a1.374 1.374 0 0 0-.961.414l-9.75 9.75a1.375 1.375 0 0 0 0 1.94l1.376 1.376c.553.553 1.455.518 2.012-.08A4.956 4.956 0 0 1 9.94 12.02c2.406-.067 4.542.441 5.955 1.85 1.41 1.41 1.915 3.541 1.85 5.947-.06 2.219-.502 3.411-1.127 4.11a1.31 1.31 0 0 0 .193 1.872l1.341 1.054a1.375 1.375 0 0 0 1.915-.175l1.638-2.148C21.418 20.378 22 17.5 22 13.911c0-3.588-.582-6.467-1.288-10.638A1.375 1.375 0 0 0 19.347 2.05l-4.9-2.006a1.374 1.374 0 0 0-.964 0zM12.44 14.16a1.332 1.332 0 1 0 0 1.331h.775a1.332 1.332 0 1 0 0-1.331h-.775z" />
+        <path d="M13.483 24a1.374 1.374 0 0 1-.961-.414l-9.75-9.75a1.375 1.375 0 0 1 0-1.94l1.376-1.376c.553-.553 1.455-.518 2.012.08A4.956 4.956 0 0 0 9.94 11.98c2.406.067 4.542-.441 5.955-1.85 1.41-1.41 1.915-3.541 1.85-5.947.06-2.219.502-3.411.127-4.11a1.31 1.31 0 0 1-.193-1.872l-1.341-1.054a1.375 1.375 0 0 1-1.915.175l-1.638 2.148C10.582 3.622 10 6.5 10 10.089c0 3.588.582 6.467 1.288 10.638a1.375 1.375 0 0 1 1.365 1.223l4.9 2.006a1.374 1.374 0 0 1 .964.044z" />
     </svg>
 );

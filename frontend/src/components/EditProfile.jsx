@@ -23,6 +23,12 @@ const EditProfile = ({ user }) => {
             photoUrl: user.photoUrl,
             about: user.about,
             gender: user.gender || "male",
+            githubUsername: user.githubUsername || "",
+            leetcodeUsername: user.leetcodeUsername || "",
+            linkedinUrl: user.linkedinUrl || "",
+            portfolioUrl: user.portfolioUrl || "",
+            headline: user.headline || "Full Stack Developer",
+            about: user.about || "",
             skills: user.skills?.join(", ") || ""
         }
     });
@@ -227,7 +233,65 @@ const EditProfile = ({ user }) => {
                             {errors.photoUrl && <span className="text-[10px] text-error mt-1 font-bold">{errors.photoUrl.message}</span>}
                         </div>
 
-                        <div className="form-control w-full mt-6">
+                        <div className="mt-10 p-8 bg-base-200/30 rounded-3xl border border-white/5 space-y-6">
+                            <div className="flex items-center gap-3 opacity-40 mb-2">
+                                <span className="text-[10px] font-black uppercase tracking-[0.3em]">Technical Handles</span>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="form-control">
+                                    <label htmlFor="githubUsername" className="label py-0">
+                                        <span className="label-text text-[10px] font-black uppercase tracking-widest opacity-40">GitHub Username</span>
+                                    </label>
+                                    <input
+                                        id="githubUsernameInput"
+                                        type="text"
+                                        className="input input-bordered w-full h-12 rounded-xl focus:input-primary bg-base-100/50 border-base-200 text-sm font-medium transition-all"
+                                        placeholder="octocat"
+                                        {...register("githubUsername")}
+                                    />
+                                </div>
+                                <div className="form-control">
+                                    <label htmlFor="leetcodeUsername" className="label py-0">
+                                        <span className="label-text text-[10px] font-black uppercase tracking-widest opacity-40">LeetCode Username</span>
+                                    </label>
+                                    <input
+                                        id="leetcodeUsernameInput"
+                                        type="text"
+                                        className="input input-bordered w-full h-12 rounded-xl focus:input-secondary bg-base-100/50 border-base-200 text-sm font-medium transition-all"
+                                        placeholder="leet_coder"
+                                        {...register("leetcodeUsername")}
+                                    />
+                                </div>
+                                
+                                <div className="form-control">
+                                    <label htmlFor="linkedinUrl" className="label py-0">
+                                        <span className="label-text text-[10px] font-black uppercase tracking-widest opacity-40">LinkedIn URL</span>
+                                    </label>
+                                    <input
+                                        id="linkedinUrlInput"
+                                        type="text"
+                                        className="input input-bordered w-full h-12 rounded-xl focus:input-primary bg-base-100/50 border-base-200 text-sm font-medium transition-all"
+                                        placeholder="https://linkedin.com/in/username"
+                                        {...register("linkedinUrl")}
+                                    />
+                                </div>
+                                <div className="form-control">
+                                    <label htmlFor="portfolioUrl" className="label py-0">
+                                        <span className="label-text text-[10px] font-black uppercase tracking-widest opacity-40">Portfolio URL</span>
+                                    </label>
+                                    <input
+                                        id="portfolioUrlInput"
+                                        type="text"
+                                        className="input input-bordered w-full h-12 rounded-xl focus:input-secondary bg-base-100/50 border-base-200 text-sm font-medium transition-all"
+                                        placeholder="https://my-awesome-site.com"
+                                        {...register("portfolioUrl")}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="form-control w-full mt-10">
                             <label htmlFor="skills" className="label py-1 mb-1">
                                 <span className="label-text text-xs font-black uppercase opacity-60 tracking-wider">Technical Stacks / Skills</span>
                             </label>
@@ -240,7 +304,20 @@ const EditProfile = ({ user }) => {
                             />
                         </div>
 
-                        <div className="form-control w-full mt-6">
+                        <div className="form-control w-full mt-10">
+                            <label htmlFor="headline" className="label py-1 mb-1">
+                                <span className="label-text text-xs font-black uppercase opacity-60 tracking-wider">Current Position / Professional Role</span>
+                            </label>
+                            <input
+                                id="headline"
+                                type="text"
+                                className="input input-bordered w-full h-14 rounded-2xl focus:input-primary bg-base-200/50 border-base-200 text-base font-medium transition-all"
+                                placeholder="e.g. Frontend Developer, Cloud Engineer"
+                                {...register("headline", { required: "Headline is required" })}
+                            />
+                        </div>
+
+                        <div className="form-control w-full mt-10">
                             <label htmlFor="about" className="label py-1 mb-1">
                                 <span className="label-text text-xs font-black uppercase opacity-60 tracking-wider">About Your Journey</span>
                             </label>

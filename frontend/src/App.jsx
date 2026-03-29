@@ -7,6 +7,7 @@ const Landing = lazy(() => import("./pages/Landing"));
 const Feed = lazy(() => import("./pages/Feed"));
 const Login = lazy(() => import("./pages/Login"));
 const Profile = lazy(() => import("./pages/Profile"));
+const Portfolio = lazy(() => import("./pages/Portfolio"));
 const Connections = lazy(() => import("./pages/Connections"));
 const Requests = lazy(() => import("./pages/Requests"));
 const Premium = lazy(() => import("./pages/Premium"));
@@ -60,6 +61,7 @@ const App = () => {
           <Route path="/feed" element={<Feed />} />
           <Route path="/login" element={<Login />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/connections" element={<Connections />} />
           <Route path="/requests" element={<Requests />} />
           <Route path="/premium" element={<Premium />} />

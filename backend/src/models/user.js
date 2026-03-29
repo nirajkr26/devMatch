@@ -89,6 +89,42 @@ const userSchema = new mongoose.Schema({
     isVerified: {
         type: Boolean,
         default: false
+    },
+    githubUsername: {
+        type: String,
+        trim: true,
+        unique: true,
+        sparse: true,
+    },
+    leetcodeUsername: {
+        type: String,
+        trim: true,
+        unique: true,
+        sparse: true,
+    },
+    linkedinUrl: {
+        type: String,
+        trim: true,
+        validate(value) {
+            if (value && !validator.isURL(value)) {
+                throw new Error("Invalid LinkedIn URL");
+            }
+        }
+    },
+    portfolioUrl: {
+        type: String,
+        trim: true,
+        validate(value) {
+            if (value && !validator.isURL(value)) {
+                throw new Error("Invalid Portfolio URL");
+            }
+        }
+    },
+    headline: {
+        type: String,
+        trim: true,
+        maxLength: 30,
+        default: "Full Stack Developer"
     }
 }, {
     timestamps: true, // Auto-manage createdAt and updatedAt fields

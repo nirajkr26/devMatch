@@ -68,6 +68,7 @@ const requestRouter = require("./routes/requests")
 const userRouter = require("./routes/user")
 const paymentRouter = require("./routes/payment");
 const chatRouter = require("./routes/chat")
+const leetcodeRouter = require("./routes/leetcode")
 const initializeSocket = require("./utils/socket");
 
 const server = http.createServer(app);
@@ -101,6 +102,7 @@ connectDB()
         app.use("/api", userRouter);
         app.use("/api", paymentRouter);
         app.use("/api", chatRouter);
+        app.use("/api", leetcodeRouter);
 
         // Global Error Handler (MUST be registered AFTER routes)
         app.use((err, req, res, next) => {
