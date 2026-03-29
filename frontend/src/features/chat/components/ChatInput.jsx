@@ -14,7 +14,7 @@ export const ChatInput = ({ fileInputRef, handleFileUpload, isUploading, uploadE
                     />
                     <button 
                         onClick={() => fileInputRef.current?.click()}
-                        className='btn btn-circle btn-ghost opacity-40 hover:opacity-100 hover:text-primary transition-all hidden sm:flex'
+                        className='btn btn-circle btn-ghost opacity-40 hover:opacity-100 hover:text-primary transition-all '
                         disabled={isUploading}
                     >
                         <AttachmentIcon className="w-6 h-6" />
