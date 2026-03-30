@@ -1,4 +1,4 @@
-const multer = require("multer");
+import multer from "multer";
 
 // Use memory storage for buffer-based uploads to Cloudinary
 const storage = multer.memoryStorage();
@@ -10,4 +10,4 @@ const upload = multer({
   },
 });
 
-module.exports = upload;
+export default upload;

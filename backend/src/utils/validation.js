@@ -1,4 +1,4 @@
-const validator = require("validator");
+import validator from "validator";
 
 /**
  * Data validation utilities for user-provided inputs.
@@ -37,7 +37,7 @@ const validateProfileEditData = (req) => {
     return true;
 }
 
-module.exports = {
+export {
     validateSignUpData,
     validateProfileEditData
-}
+};

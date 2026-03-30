@@ -73,7 +73,7 @@ const PASSWORD_RESET_TEMPLATE = (resetLink) => `
 </html>
 `;
 
-module.exports = {
+export {
     OTP_TEMPLATE,
     PASSWORD_RESET_TEMPLATE
 };

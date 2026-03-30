@@ -1,8 +1,9 @@
-const express = require("express");
+import express from "express";
+import { userAuth } from "../middlewares/auth.js";
+import { ConnectionRequest } from "../models/connRequest.js";
+import User from "../models/user.js";
+
 const router = express.Router();
-const { userAuth } = require("../middlewares/auth");
-const { ConnectionRequest } = require("../models/connRequest");
-const User = require("../models/user");
 
 /**
  * Route to fetch all pending connection requests received by the current user.
@@ -133,4 +134,4 @@ router.get("/feed", userAuth, async (req, res, next) => {
     }
 })
 
-module.exports = router;
+export default router;

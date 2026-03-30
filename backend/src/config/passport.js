@@ -1,7 +1,7 @@
-const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const GitHubStrategy = require('passport-github2').Strategy;
-const User = require('../models/user');
+import passport from "passport";
+import GoogleStrategy from "passport-google-oauth20";
+import GitHubStrategy from "passport-github2";
+import User from "../models/user.js";
 
 /**
  * Passport Configuration
@@ -60,15 +60,15 @@ const verifyCallback = async (profile, done) => {
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: process.env.GOOGLE_CALLBACK_URL || "http://localhost:3000/auth/google/callback",
+    callbackURL: process.env.GOOGLE_CALLBACK_URL || "http://localhost:3000/api/auth/google/callback",
 }, (accessToken, refreshToken, profile, done) => verifyCallback(profile, done)));
 
 // --- [ GITHUB STRATEGY ] ---
 passport.use(new GitHubStrategy({
     clientID: process.env.GITHUB_CLIENT_ID,
     clientSecret: process.env.GITHUB_CLIENT_SECRET,
-    callbackURL: process.env.GITHUB_CALLBACK_URL || "http://localhost:3000/auth/github/callback",
+    callbackURL: process.env.GITHUB_CALLBACK_URL || "http://localhost:3000/api/auth/github/callback",
     scope: ['user:email']
 }, (accessToken, refreshToken, profile, done) => verifyCallback(profile, done)));
 
-module.exports = passport;
+export default passport;

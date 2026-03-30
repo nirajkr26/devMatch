@@ -2,7 +2,9 @@
  * Environment configuration and validation.
  * Ensures the application starts with all required configuration parameters.
  */
-require("dotenv").config();
+import dotenv from "dotenv";
+
+dotenv.config();
 
 // List of mandatory environment variables for the application to function correctly
 const requiredEnvs = [
@@ -40,4 +42,4 @@ const validateEnv = () => {
 validateEnv();
 
 // Export the process.env object for easy access throughout the backend
-module.exports = process.env;
+export default process.env;

@@ -8,4 +8,4 @@ const membershipAmount = {
     gold: 70000   // 700.00 INR
 }
 
-module.exports = { membershipAmount };
+export { membershipAmount };

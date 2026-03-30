@@ -1,17 +1,18 @@
-const express = require("express");
+import express from "express";
+import bcrypt from "bcrypt";
+import { validateSignUpData } from "../utils/validation.js";
+import User from "../models/user.js";
+import cookieConfig from "../config/cookieConfig.js";
+import { redisClient } from "../config/redis.js";
+import { createAuthLimiter, createOtpLimiter } from "../config/rateLimiter.js";
+import sendEmail from "../utils/sendEmail.js";
+import { OTP_TEMPLATE, PASSWORD_RESET_TEMPLATE } from "../utils/emailTemplates.js";
+import crypto from "crypto";
+import validator from "validator";
+import passport from "passport";
+import jwt from "jsonwebtoken";
+
 const router = express.Router();
-const bcrypt = require("bcrypt")
-const { validateSignUpData } = require("../utils/validation")
-const User = require("../models/user");
-const cookieConfig = require("../config/cookieConfig");
-const { redisClient } = require("../config/redis");
-const { createAuthLimiter, createOtpLimiter } = require("../config/rateLimiter");
-const sendEmail = require("../utils/sendEmail");
-const { OTP_TEMPLATE, PASSWORD_RESET_TEMPLATE } = require("../utils/emailTemplates");
-const crypto = require("crypto");
-const validator = require("validator");
-const passport = require("passport");
-const jwt = require("jsonwebtoken");
 
 /**
  * Shared Callback handler post-social-auth
@@ -207,4 +208,4 @@ const setupAuthRoutes = () => {
     return router;
 };
 
-module.exports = setupAuthRoutes;
+export default setupAuthRoutes;

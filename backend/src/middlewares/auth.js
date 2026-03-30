@@ -1,5 +1,5 @@
-const jwt = require("jsonwebtoken");
-const User = require("../models/user");
+import jwt from "jsonwebtoken";
+import User from "../models/user.js";
 
 /**
  * Authentication Middleware for the DevMatch application.
@@ -39,7 +39,6 @@ const userAuth = async (req, res, next) => {
     }
 }
 
-module.exports = {
+export {
     userAuth
-}
-
+};

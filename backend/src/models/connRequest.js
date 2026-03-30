@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 /**
  * ConnectionRequest Model Schema.
  * Tracks invitations between users (Pending, Accepted, Ignored, Rejected).
@@ -46,6 +46,6 @@ connectionRequestSchema.pre("save", function (next) {
 
 const ConnectionRequest = new mongoose.model("ConnectionRequest", connectionRequestSchema);
 
-module.exports = {
+export {
     ConnectionRequest
-}
+};

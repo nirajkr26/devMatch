@@ -1,8 +1,9 @@
-const express = require("express")
-const router = express.Router();
+import express from "express";
+import { Chat, Message } from "../models/chat.js";
+import { userAuth } from "../middlewares/auth.js";
+import cloudinary from "../config/cloudinary.js";
 
-const { Chat, Message } = require("../models/chat");
-const { userAuth } = require("../middlewares/auth");
+const router = express.Router();
 
 /**
  * Route to fetch chat history between the current user and a target user.
@@ -58,8 +59,6 @@ router.get("/chat/:targetUserId", userAuth, async (req, res, next) => {
     }
 })
 
-const cloudinary = require("../config/cloudinary");
-
 /**
  * Route to generate a secure signature for direct Cloudinary uploads.
  * This allows the frontend to upload media files directly to Cloudinary
@@ -91,4 +90,4 @@ router.post("/chat/sign-upload", userAuth, async (req, res, next) => {
     }
 });
 
-module.exports = router;
+export default router;

@@ -1,10 +1,12 @@
-const socket = require("socket.io")
-const crypto = require("crypto");
-const { Chat, Message } = require("../models/chat");
-const { ConnectionRequest } = require("../models/connRequest")
-const User = require("../models/user");
-const jwt = require("jsonwebtoken");
-require("dotenv").config();
+import { Server } from "socket.io";
+import crypto from "crypto";
+import { Chat, Message } from "../models/chat.js";
+import { ConnectionRequest } from "../models/connRequest.js";
+import User from "../models/user.js";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 /**
  * WebSocket utility using Socket.io for real-time messaging.
@@ -20,7 +22,7 @@ const getSecretRoomId = (userId, targetUserId) => {
  * Handles authentication, room logic, and event-based communication.
  */
 const initializeSocket = (server) => {
-    const io = socket(server, {
+    const io = new Server(server, {
         cors: {
             origin: process.env.FRONTEND_URL,
             credentials: true
@@ -161,4 +163,4 @@ const initializeSocket = (server) => {
 
 }
 
-module.exports = initializeSocket
+export default initializeSocket;

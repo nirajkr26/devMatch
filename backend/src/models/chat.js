@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 /**
  * Chat Model Schemas.
  * Defines individual messages and the overall chat container between users.
@@ -50,4 +50,4 @@ messageSchema.index({ chatId: 1, createdAt: -1 });
 
 const Message = mongoose.model("Message", messageSchema);
 
-module.exports = { Chat, Message };
+export { Chat, Message };

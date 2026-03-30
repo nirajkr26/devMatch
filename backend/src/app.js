@@ -1,18 +1,22 @@
-const env = require("./config/env");
-const express = require("express");
-const { userAuth } = require("./middlewares/auth");
-const connectDB = require("./config/database");
-const cors = require("cors");
-const cookieParser = require("cookie-parser")
-const jwt = require("jsonwebtoken");
-const http = require("http");
-const { connectRedis, redisClient } = require("./config/redis");
-const { createGlobalLimiter } = require("./config/rateLimiter");
-const mongoose = require("mongoose");
-const passport = require("passport");
-require("./config/passport"); // Import passport strategy configuration
-require("dotenv").config();
-
+import "./config/env.js";
+import express from "express";
+import connectDB from "./config/database.js";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import http from "http";
+import { connectRedis, redisClient } from "./config/redis.js";
+import { createGlobalLimiter } from "./config/rateLimiter.js";
+import mongoose from "mongoose";
+import passport from "passport";
+import "./config/passport.js";
+import setupAuthRoutes from "./routes/auth.js";
+import profileRouter from "./routes/profile.js";
+import requestRouter from "./routes/requests.js";
+import userRouter from "./routes/user.js";
+import paymentRouter from "./routes/payment.js";
+import chatRouter from "./routes/chat.js";
+import leetcodeRouter from "./routes/leetcode.js";
+import initializeSocket from "./utils/socket.js";
 
 const app = express();
 
@@ -58,18 +62,6 @@ app.get("/api/health", async (req, res) => {
     }
 });
 
-
-/**
- * Import Router Factories (to avoid early Redis access)
- */
-const setupAuthRoutes = require("./routes/auth")
-const profileRouter = require("./routes/profile")
-const requestRouter = require("./routes/requests")
-const userRouter = require("./routes/user")
-const paymentRouter = require("./routes/payment");
-const chatRouter = require("./routes/chat")
-const leetcodeRouter = require("./routes/leetcode")
-const initializeSocket = require("./utils/socket");
 
 const server = http.createServer(app);
 initializeSocket(server);
@@ -125,4 +117,3 @@ connectDB()
         console.error(err);
         process.exit(1);
     });
-

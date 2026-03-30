@@ -9,4 +9,4 @@ const cookieConfig = {
     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // Lifetime: Persistent for 7 days
 }
 
-module.exports = cookieConfig
+export default cookieConfig;

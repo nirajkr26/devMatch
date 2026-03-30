@@ -1,4 +1,4 @@
-const { createClient } = require('redis');
+import { createClient } from "redis";
 
 const redisClient = createClient({
     url: process.env.REDIS_URL
@@ -17,4 +17,4 @@ const connectRedis = async () => {
     }
 };
 
-module.exports = { redisClient, connectRedis };
+export { redisClient, connectRedis };

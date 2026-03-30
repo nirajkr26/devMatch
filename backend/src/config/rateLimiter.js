@@ -1,6 +1,6 @@
-const rateLimit = require("express-rate-limit");
-const RedisStore = require("rate-limit-redis").default;
-const { redisClient } = require("./redis");
+import rateLimit from "express-rate-limit";
+import RedisStore from "rate-limit-redis";
+import { redisClient } from "./redis.js";
 
 /**
  * Factory functions to create limiters ONLY after Redis is connected
@@ -42,7 +42,7 @@ const createOtpLimiter = () => rateLimit({
     message: "Too many OTP requests, Try again after 5 minutes"
 });
 
-module.exports = {
+export {
     createGlobalLimiter,
     createAuthLimiter,
     createOtpLimiter

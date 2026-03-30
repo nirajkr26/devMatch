@@ -2,7 +2,7 @@
  * Razorpay SDK initialization.
  * Creates a global instance used for interacting with the Razorpay API.
  */
-const Razorpay = require('razorpay');
+import Razorpay from "razorpay";
 
 const keyId = process.env.RAZORPAY_KEY_ID;
 const keySecret = process.env.RAZORPAY_KEY_SECRET;
@@ -13,4 +13,4 @@ var instance = new Razorpay({
     key_secret: keySecret,
 });
 
-module.exports = instance;
+export default instance;
