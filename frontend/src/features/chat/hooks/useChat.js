@@ -5,11 +5,16 @@ import { useGetChatQuery, useGetConnectionsQuery, useSignChatUploadMutation } fr
 import imageCompression from 'browser-image-compression';
 import React from 'react';
 
+// Stable empty array – prevents useEffect from running spuriously when chatData is undefined
+const EMPTY_MESSAGES = [];
+
 export const useChat = (targetUserId) => {
     const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
-    const [socket, setSocket] = useState(null);
+    // Socket stored as a ref to avoid re-renders and the timing window
+    // where state is null even though the socket is already connected
+    const socketRef = useRef(null);
     const [targetUser, setTargetUser] = useState(null);
     const [before, setBefore] = useState("");
     const [initialLoad, setInitialLoad] = useState(true);
@@ -37,7 +42,7 @@ export const useChat = (targetUserId) => {
     
     const [signChatUpload] = useSignChatUploadMutation();
 
-    const chatMessages = chatData?.messages || [];
+    const chatMessages = chatData?.messages ?? EMPTY_MESSAGES;
     const chatId = chatData?.chatId || null;
     const hasMore = chatData?.hasMore ?? true;
 
@@ -155,7 +160,8 @@ export const useChat = (targetUserId) => {
 
         const currentSocket = getSocket();
         if (!currentSocket.connected) currentSocket.connect();
-        setSocket(currentSocket);
+        // Assign to ref immediately – no state update, no extra re-render
+        socketRef.current = currentSocket;
         currentSocket.emit("joinChat", { userId, targetUserId });
 
         const handleMessageReceived = ({ senderId, firstName, lastName, text, messageType, fileUrl, fileName, tempId }) => {
@@ -178,7 +184,7 @@ export const useChat = (targetUserId) => {
             // Only remove the room-specific listener; do NOT disconnect the global socket
             // (socket lifecycle is managed globally in Body.jsx via connectSocket/disconnectSocket)
             currentSocket.off("messageReceived", handleMessageReceived);
-            setSocket(null);
+            socketRef.current = null;
         };
     }, [userId, targetUserId]);
 
@@ -266,7 +272,7 @@ export const useChat = (targetUserId) => {
     }
 
     const sendMessage = (type = "text", fileUrl = null, existingTempId = null, fileName = null) => {
-        if (!socket || (type === "text" && !newMessage.trim())) return;
+        if (!socketRef.current || (type === "text" && !newMessage.trim())) return;
         if (type === "text") {
             setUploadError("");
         }
@@ -291,7 +297,7 @@ export const useChat = (targetUserId) => {
             setNewMessage("");
         }
 
-        socket.emit("sendMessage", {
+        socketRef.current.emit("sendMessage", {
             firstName: user.firstName,
             lastName: user.lastName,
             userId,
