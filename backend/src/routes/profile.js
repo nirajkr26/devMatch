@@ -1,11 +1,11 @@
 import express from "express";
-import { userAuth } from "../middlewares/auth.js";
-import { validateProfileEditData } from "../utils/validation.js";
-import User from "../models/user.js";
+import { userAuth } from "#middlewares/auth.js";
+import { validateProfileEditData } from "#utils/validation.js";
+import User from "#models/user.js";
 import validator from "validator";
 import bcrypt from "bcrypt";
-import upload from "../middlewares/multer.js";
-import cloudinary from "../config/cloudinary.js";
+import upload from "#middlewares/multer.js";
+import cloudinary from "#config/cloudinary.js";
 
 const router = express.Router();
 

@@ -1,7 +1,7 @@
 import express from "express";
-import { userAuth } from "../middlewares/auth.js";
-import { ConnectionRequest } from "../models/connRequest.js";
-import User from "../models/user.js";
+import { userAuth } from "#middlewares/auth.js";
+import { ConnectionRequest } from "#models/connRequest.js";
+import User from "#models/user.js";
 
 const router = express.Router();
 

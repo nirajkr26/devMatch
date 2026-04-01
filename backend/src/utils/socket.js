@@ -1,10 +1,10 @@
 import { Server } from "socket.io";
 import crypto from "crypto";
-import { Chat, Message } from "../models/chat.js";
-import { ConnectionRequest } from "../models/connRequest.js";
-import User from "../models/user.js";
-import { Notification } from "../models/notification.js";
-import { sendPushNotification } from "./webPush.js";
+import { Chat, Message } from "#models/chat.js";
+import { ConnectionRequest } from "#models/connRequest.js";
+import User from "#models/user.js";
+import { Notification } from "#models/notification.js";
+import { sendPushNotification } from "#utils/webPush.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 
