@@ -51,7 +51,7 @@ const initializeSocket = (server) => {
                 console.log("Socket Auth Error: Token cookie not found");
                 return next(new Error("Authentication error"));
             }
-            const token = tokenCookie.split("=")[1];
+            const token = tokenCookie.slice(tokenCookie.indexOf("=") + 1);
 
             // Verify JWT
             let decoded;
@@ -96,7 +96,7 @@ const initializeSocket = (server) => {
         })
 
         // Listen for new chat messages with Acknowledgment (Optimistic UI)
-        socket.on("sendMessage", async ({ userId, targetUserId, text, tempId, messageType = "text", fileUrl, fileName }, callback) => {
+        socket.on("sendMessage", async ({ userId, targetUserId, chatId: clientChatId, text, tempId, messageType = "text", fileUrl, fileName }, callback) => {
             try {
                 const roomId = getSecretRoomId(userId, targetUserId)
                 const { firstName, lastName } = socket.user;
@@ -122,20 +122,31 @@ const initializeSocket = (server) => {
                     tempId // Shared for reconciliation if needed
                 });
 
-                // 2. Perform DB logic
-                let chat = await Chat.findOne({
-                    participants: { $all: [userId, targetUserId] }
-                });
-
-                if (!chat) {
-                    chat = new Chat({
-                        participants: [userId, targetUserId]
+                // 2. Resolve chatId – use the one provided by the client if valid, otherwise query DB
+                let chatId = null;
+                if (clientChatId) {
+                    // Validate that both users are actual participants of this chat
+                    const validChat = await Chat.findOne({
+                        _id: clientChatId,
+                        participants: { $all: [userId, targetUserId] }
+                    }).select("_id");
+                    if (validChat) {
+                        chatId = validChat._id;
+                    }
+                }
+                if (!chatId) {
+                    let chat = await Chat.findOne({
+                        participants: { $all: [userId, targetUserId] }
                     });
-                    await chat.save();
+                    if (!chat) {
+                        chat = new Chat({ participants: [userId, targetUserId] });
+                        await chat.save();
+                    }
+                    chatId = chat._id;
                 }
 
                 const newMessage = new Message({
-                    chatId: chat._id,
+                    chatId,
                     senderId: userId,
                     text: normalizedType === "text" ? trimmedText : "",
                     messageType: normalizedType,
@@ -161,7 +172,7 @@ const initializeSocket = (server) => {
                             recipient: targetUserId,
                             sender: userId,
                             type: "NEW_MESSAGE",
-                            relatedId: chat._id
+                            relatedId: chatId
                         });
                         await notification.save();
 
@@ -169,7 +180,7 @@ const initializeSocket = (server) => {
                         io.to(targetUserId.toString()).emit("new_notification", {
                             type: "NEW_MESSAGE",
                             senderName: firstName,
-                            senderPhoto: socket.user.photoUrl, // Assuming photoUrl is selected
+                            senderPhoto: socket.user.photoUrl,
                             text: normalizedType === "text" ? trimmedText : `sent an ${normalizedType}`
                         });
 
@@ -178,7 +189,7 @@ const initializeSocket = (server) => {
                             title: `New Message from ${firstName}! 💬`,
                             body: normalizedType === "text" ? trimmedText : `Sent a ${normalizedType}`,
                             icon: socket.user.photoUrl || "/favicon.ico",
-                            tag: `dm-chat-${chat._id}`, // Group notifications for same chat
+                            tag: `dm-chat-${chatId}`, // Group notifications for same chat
                             data: { url: `/chat/${userId}` }
                         });
                     }

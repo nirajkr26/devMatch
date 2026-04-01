@@ -38,6 +38,7 @@ export const useChat = (targetUserId) => {
     const [signChatUpload] = useSignChatUploadMutation();
 
     const chatMessages = chatData?.messages || [];
+    const chatId = chatData?.chatId || null;
     const hasMore = chatData?.hasMore ?? true;
 
     // Handle Intersection Observer for the Sentinel (top of list)
@@ -152,12 +153,12 @@ export const useChat = (targetUserId) => {
     useEffect(() => {
         if (!userId || !targetUserId) return;
 
-        const newSocket = getSocket();
-        if (!newSocket.connected) newSocket.connect();
-        setSocket(newSocket);
-        newSocket.emit("joinChat", { userId, targetUserId });
+        const currentSocket = getSocket();
+        if (!currentSocket.connected) currentSocket.connect();
+        setSocket(currentSocket);
+        currentSocket.emit("joinChat", { userId, targetUserId });
 
-        newSocket.on("messageReceived", ({ senderId, firstName, lastName, text, messageType, fileUrl, fileName, tempId }) => {
+        const handleMessageReceived = ({ senderId, firstName, lastName, text, messageType, fileUrl, fileName, tempId }) => {
             setMessages((prevMessages) => [...prevMessages, {
                 senderId,
                 firstName,
@@ -169,10 +170,14 @@ export const useChat = (targetUserId) => {
                 status: "sent",
                 createdAt: new Date()
             }]);
-        });
+        };
+
+        currentSocket.on("messageReceived", handleMessageReceived);
 
         return () => {
-            newSocket.disconnect();
+            // Only remove the room-specific listener; do NOT disconnect the global socket
+            // (socket lifecycle is managed globally in Body.jsx via connectSocket/disconnectSocket)
+            currentSocket.off("messageReceived", handleMessageReceived);
             setSocket(null);
         };
     }, [userId, targetUserId]);
@@ -291,6 +296,7 @@ export const useChat = (targetUserId) => {
             lastName: user.lastName,
             userId,
             targetUserId,
+            chatId,
             text: msgText,
             messageType: type,
             fileUrl,

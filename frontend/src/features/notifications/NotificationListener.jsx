@@ -31,8 +31,12 @@ const NotificationListener = () => {
     const dispatch = useDispatch();
     const [subscribePush] = useSubscribePushMutation();
     
-    // Ref for the ping sound
-    const audioRef = useRef(new Audio("https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3"));
+    // Ref for the ping sound – created once on mount, never on re-renders
+    const audioRef = useRef(null);
+    useEffect(() => {
+        audioRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3");
+        return () => { audioRef.current = null; };
+    }, []);
 
     // Handlers for Web Push
     useEffect(() => {
