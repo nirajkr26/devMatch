@@ -79,6 +79,7 @@ export const apiSlice = createApi({
                     createdAt: msg?.createdAt
                 })) || [];
                 return {
+                    chatId: response?.chatId,
                     messages,
                     hasMore: messages.length >= PAGE_SIZE // If we got a full page, there might be more
                 };
@@ -90,8 +91,9 @@ export const apiSlice = createApi({
             // Merge newly fetched (older) messages to the FRONT of the cache
             merge: (currentCache, newItems, { arg }) => {
                 if (arg.before) {
-                    // Prepend older messages, update hasMore from the latest fetch
+                    // Prepend older messages; preserve chatId from the initial load
                     return {
+                        chatId: currentCache.chatId ?? newItems.chatId,
                         messages: [...newItems.messages, ...currentCache.messages],
                         hasMore: newItems.hasMore
                     };

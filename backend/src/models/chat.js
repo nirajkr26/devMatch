@@ -12,6 +12,9 @@ const chatSchema = new mongoose.Schema({
     ]
 }, { timestamps: true });
 
+// Index for fast participant-based lookups (used in every $all query)
+chatSchema.index({ participants: 1 });
+
 const Chat = mongoose.model("Chat", chatSchema);
 
 // Schema for individual messages within a chat, stored in their own collection

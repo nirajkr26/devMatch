@@ -81,11 +81,11 @@ const Chat = () => {
                         <p className="font-black uppercase tracking-[0.3em] text-[10px]">Your professional journey starts with a hello.</p>
                     </div>
                 ) : (
-                    messages.map((msg, index) => {
+                    messages.map((msg) => {
                         const isSender = userId === msg.senderId;
                         return (
                             <MessageBubble 
-                                key={index}
+                                key={msg._id}
                                 msg={msg}
                                 isSender={isSender}
                                 userPhotoUrl={user?.photoUrl}

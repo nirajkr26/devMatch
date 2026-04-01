@@ -136,7 +136,7 @@ router.post("/request/review/:status/:id", userAuth, async (req, res, next) => {
 
                 // Live Emit
                 const io = getIO();
-+                io.to(connectionRequest.fromUserId.toString()).emit("new_notification", {
+                io.to(connectionRequest.fromUserId.toString()).emit("new_notification", {
                     type: "REQUEST_ACCEPTED",
                     senderName: loggedInUser.firstName,
                     senderPhoto: loggedInUser.photoUrl

@@ -5,11 +5,16 @@ import { useGetChatQuery, useGetConnectionsQuery, useSignChatUploadMutation } fr
 import imageCompression from 'browser-image-compression';
 import React from 'react';
 
+// Stable empty array – prevents useEffect from running spuriously when chatData is undefined
+const EMPTY_MESSAGES = [];
+
 export const useChat = (targetUserId) => {
     const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
-    const [socket, setSocket] = useState(null);
+    // Socket stored as a ref to avoid re-renders and the timing window
+    // where state is null even though the socket is already connected
+    const socketRef = useRef(null);
     const [targetUser, setTargetUser] = useState(null);
     const [before, setBefore] = useState("");
     const [initialLoad, setInitialLoad] = useState(true);
@@ -37,7 +42,8 @@ export const useChat = (targetUserId) => {
     
     const [signChatUpload] = useSignChatUploadMutation();
 
-    const chatMessages = chatData?.messages || [];
+    const chatMessages = chatData?.messages ?? EMPTY_MESSAGES;
+    const chatId = chatData?.chatId || null;
     const hasMore = chatData?.hasMore ?? true;
 
     // Handle Intersection Observer for the Sentinel (top of list)
@@ -152,12 +158,13 @@ export const useChat = (targetUserId) => {
     useEffect(() => {
         if (!userId || !targetUserId) return;
 
-        const newSocket = getSocket();
-        if (!newSocket.connected) newSocket.connect();
-        setSocket(newSocket);
-        newSocket.emit("joinChat", { userId, targetUserId });
+        const currentSocket = getSocket();
+        if (!currentSocket.connected) currentSocket.connect();
+        // Assign to ref immediately – no state update, no extra re-render
+        socketRef.current = currentSocket;
+        currentSocket.emit("joinChat", { userId, targetUserId });
 
-        newSocket.on("messageReceived", ({ senderId, firstName, lastName, text, messageType, fileUrl, fileName, tempId }) => {
+        const handleMessageReceived = ({ senderId, firstName, lastName, text, messageType, fileUrl, fileName, tempId }) => {
             setMessages((prevMessages) => [...prevMessages, {
                 senderId,
                 firstName,
@@ -169,11 +176,15 @@ export const useChat = (targetUserId) => {
                 status: "sent",
                 createdAt: new Date()
             }]);
-        });
+        };
+
+        currentSocket.on("messageReceived", handleMessageReceived);
 
         return () => {
-            newSocket.disconnect();
-            setSocket(null);
+            // Only remove the room-specific listener; do NOT disconnect the global socket
+            // (socket lifecycle is managed globally in Body.jsx via connectSocket/disconnectSocket)
+            currentSocket.off("messageReceived", handleMessageReceived);
+            socketRef.current = null;
         };
     }, [userId, targetUserId]);
 
@@ -261,7 +272,7 @@ export const useChat = (targetUserId) => {
     }
 
     const sendMessage = (type = "text", fileUrl = null, existingTempId = null, fileName = null) => {
-        if (!socket || (type === "text" && !newMessage.trim())) return;
+        if (!socketRef.current || (type === "text" && !newMessage.trim())) return;
         if (type === "text") {
             setUploadError("");
         }
@@ -286,11 +297,12 @@ export const useChat = (targetUserId) => {
             setNewMessage("");
         }
 
-        socket.emit("sendMessage", {
+        socketRef.current.emit("sendMessage", {
             firstName: user.firstName,
             lastName: user.lastName,
             userId,
             targetUserId,
+            chatId,
             text: msgText,
             messageType: type,
             fileUrl,
