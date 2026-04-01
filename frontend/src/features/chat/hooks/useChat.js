@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useSelector } from "react-redux";
-import { createSocketConnection } from '@/utils/socket';
+import { getSocket } from '@/utils/socket';
 import { useGetChatQuery, useGetConnectionsQuery, useSignChatUploadMutation } from '@/utils/apiSlice';
 import imageCompression from 'browser-image-compression';
 import React from 'react';
@@ -152,7 +152,8 @@ export const useChat = (targetUserId) => {
     useEffect(() => {
         if (!userId || !targetUserId) return;
 
-        const newSocket = createSocketConnection();
+        const newSocket = getSocket();
+        if (!newSocket.connected) newSocket.connect();
         setSocket(newSocket);
         newSocket.emit("joinChat", { userId, targetUserId });
 

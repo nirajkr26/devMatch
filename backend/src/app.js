@@ -16,6 +16,7 @@ import userRouter from "./routes/user.js";
 import paymentRouter from "./routes/payment.js";
 import chatRouter from "./routes/chat.js";
 import leetcodeRouter from "./routes/leetcode.js";
+import notificationsRouter from "./routes/notifications.js";
 import initializeSocket from "./utils/socket.js";
 
 const app = express();
@@ -95,6 +96,7 @@ connectDB()
         app.use("/api", paymentRouter);
         app.use("/api", chatRouter);
         app.use("/api", leetcodeRouter);
+        app.use("/api", notificationsRouter);
 
         // Global Error Handler (MUST be registered AFTER routes)
         app.use((err, req, res, next) => {

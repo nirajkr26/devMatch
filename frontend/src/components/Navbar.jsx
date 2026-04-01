@@ -4,14 +4,19 @@ import { Link, useLocation } from "react-router-dom";
 import { BASE_URL } from "@/utils/constant";
 import axios from "axios";
 import { removeUser } from "@/utils/userSlice";
-import { apiSlice } from "@/utils/apiSlice";
-import { SunIcon, MoonIcon } from "@/utils/Icons";
+import { apiSlice, useGetNotificationsQuery, useMarkNotificationsAsReadMutation } from "@/utils/apiSlice";
+import { SunIcon, MoonIcon, BellIcon } from "@/utils/Icons";
 
 const Navbar = () => {
     const user = useSelector((store) => store.user);
     const dispatch = useDispatch();
     const location = useLocation();
     const [theme, setTheme] = useState(localStorage.getItem("theme") || "dark");
+
+    const { data: notifData } = useGetNotificationsQuery({}, {
+        skip: !user
+    });
+    const [markAsRead] = useMarkNotificationsAsReadMutation();
 
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme);
@@ -86,6 +91,71 @@ const Navbar = () => {
                         <MoonIcon className="w-6 h-6 fill-current" />
                     )}
                 </button>
+
+                {/* Notification Bell */}
+                {user && (
+                    <div className="dropdown dropdown-end">
+                        <div tabIndex={0} role="button" className="btn btn-ghost btn-circle relative hover:bg-base-200 transition-all">
+                            <BellIcon className="w-6 h-6 opacity-60 hover:opacity-100" />
+                            {notifData?.totalUnread > 0 && (
+                                <span className="absolute top-2 right-2 h-4 w-4 bg-error text-[8px] font-black flex items-center justify-center rounded-full text-white ring-2 ring-base-300 animate-bounce">
+                                    {notifData.totalUnread > 9 ? '9+' : notifData.totalUnread}
+                                </span>
+                            )}
+                        </div>
+                        <div tabIndex={0} className="dropdown-content mt-4 z-[101] p-0 shadow-2xl bg-base-300 rounded-[1.5rem] w-80 border border-base-200 overflow-hidden ring-1 ring-white/5">
+                            <div className="p-4 bg-base-100/50 flex justify-between items-center border-b border-base-200">
+                                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-base-content/40">Alerts</h3>
+                                {notifData?.totalUnread > 0 && (
+                                    <button 
+                                        onClick={() => markAsRead()}
+                                        className="text-[8px] font-black uppercase tracking-widest text-primary hover:underline"
+                                    >
+                                        Mark all as read
+                                    </button>
+                                )}
+                            </div>
+                            <div className="max-h-80 overflow-y-auto">
+                                {!notifData?.notifications?.length ? (
+                                    <div className="p-10 text-center opacity-20">
+                                        <BellIcon className="w-10 h-10 mx-auto mb-2" />
+                                        <p className="text-[10px] font-black uppercase tracking-widest">Inbox is empty</p>
+                                    </div>
+                                ) : (
+                                    notifData.notifications.map((notif) => (
+                                        <Link 
+                                            to={notif.type === "NEW_MESSAGE" ? `/chat/${notif.sender._id}` : "/requests"}
+                                            key={notif._id} 
+                                            className={`flex gap-3 p-4 hover:bg-base-100 transition-all border-b border-base-200/50 last:border-0 ${!notif.isRead ? 'bg-primary/5' : ''}`}
+                                        >
+                                            <div className="avatar h-10 w-10 shrink-0">
+                                                <div className="rounded-xl overflow-hidden shadow-md">
+                                                    <img src={notif.sender?.photoUrl || "/default-avatar.png"} alt="sender" />
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-col gap-0.5">
+                                                <p className="text-xs font-black text-base-content leading-tight">
+                                                    {notif.sender?.firstName} {notif.sender?.lastName}
+                                                </p>
+                                                <p className="text-[10px] font-medium opacity-60 line-clamp-1 italic text-base-content">
+                                                    {notif.type === "CONNECTION_REQUEST" && "Invited you to connect"}
+                                                    {notif.type === "REQUEST_ACCEPTED" && "Accepted your invitation"}
+                                                    {notif.type === "NEW_MESSAGE" && "Sent you a message"}
+                                                </p>
+                                                <span className="text-[8px] font-bold opacity-30 mt-1">
+                                                    {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            </div>
+                                            {!notif.isRead && (
+                                                <div className="h-1.5 w-1.5 rounded-full bg-primary mt-1 ml-auto shrink-0"></div>
+                                            )}
+                                        </Link>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {user ? (
                     <div className="flex items-center gap-1">

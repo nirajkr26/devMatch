@@ -1,12 +1,32 @@
-# devMatch 🚀
+# devMatch 🚀 — The Premium Developer Networking Hub
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![React](https://img.shields.io/badge/Frontend-React-61DAFB?logo=react)](https://reactjs.org/)
-[![Node.js](https://img.shields.io/badge/Backend-Node.js-339933?logo=node.js)](https://nodejs.org/)
-[![MongoDB](https://img.shields.io/badge/Database-MongoDB-47A248?logo=mongodb)](https://www.mongodb.com/)
-[![Tailwind CSS](https://img.shields.io/badge/Styling-Tailwind_CSS-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
+[![React](https://img.shields.io/badge/Frontend-React-61DAFB?logo=react&logoColor=white)](https://reactjs.org/)
+[![Node.js](https://img.shields.io/badge/Backend-Node.js-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![MongoDB](https://img.shields.io/badge/Database-MongoDB-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Styling-Tailwind_CSS-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Socket.io](https://img.shields.io/badge/Real--Time-Socket.io-010101?logo=socket.io&logoColor=white)](https://socket.io/)
+[![Redis](https://img.shields.io/badge/Cache-Redis-DC382D?logo=redis&logoColor=white)](https://redis.io/)
+[![Cloudinary](https://img.shields.io/badge/Storage-Cloudinary-3448C5?logo=cloudinary&logoColor=white)](https://cloudinary.com/)
+[![Vercel](https://img.shields.io/badge/Deployment-Vercel-000000?logo=vercel&logoColor=white)](https://vercel.com/)
+[![Render](https://img.shields.io/badge/Deployment-Render-46E3B7?logo=render&logoColor=white)](https://render.com/)
 
-**devMatch** is a premium, high-performance networking platform designed specifically for developers. It combines the intuitive "swipe-to-match" discovery model with a robust professional ecosystem, enabling engineers to find co-builders, mentors, and collaborators with clinical precision.
+**devMatch** is a next-generation professional networking platform engineered specifically for the developer community. By merging the intuitive "match-to-discover" user experience with verifiable technical credentials (GitHub/LeetCode integration), devMatch provides a high-fidelity environment for finding co-founders, collaborators, and mentors.
+
+---
+
+### 🧱 Core Architecture & Tech Rationale
+
+| Layer | Technology | Key Purpose in devMatch |
+| :--- | :--- | :--- |
+| **Frontend** | **React v19 + RTK Query** | Delivers a high-performance SPA with automatic cache management for infinite-scrolling chat and discovery feeds. |
+| **Styling** | **Tailwind CSS v4 + DaisyUI** | A custom glassmorphic design system tailored for the "Elite Developer" aesthetic. |
+| **Real-time** | **Socket.io + Redux Slices** | Powers sub-50ms messaging delivery and instant global notification toasts. |
+| **Backend** | **Node.js (type: module)** | A modern, asynchronous event-driven core capable of handling high-concurrency connections. |
+| **Persistence** | **MongoDB + Mongoose** | Flexible, document-based storage designed for fast iteration on developer profiles. |
+| **Speed/Security**| **Upstash Redis** | Provides lightning-fast session caching, OTP throttling, and global rate limiting. |
+| **Identity** | **Passport.js (OAuth 2.0)** | Seamless integration with GitHub and Google for frictionless onboarding. |
+| **Media** | **Cloudinary (Signed Uploads)** | High-optimized media pipeline allowing the frontend to upload directly via secure signatures. |
 
 ---
 
@@ -41,6 +61,14 @@
 - **Tiered Plans**: Silver and Gold membership tiers with exclusive benefits.
 - **Razorpay Integration**: Fully functional, secure payment gateway for membership upgrades.
 - **Elite Badges**: Visual premium indicators for verified power users.
+
+### 🔔 Real-Time Notification System (Multi-Channel)
+- **Global Toast Alerts**: Instant, glassmorphic in-app notifications with sender avatars for connection requests, acceptances, and messages.
+- **Real-Time Audio Feedback**: Curated "Ping" sound effects for immediate sensory feedback on new alerts.
+- **Background Web Push (W3C Standard)**: Integrated Service Worker and VAPID-based push notifications that work even when the browser tab is closed.
+- **Notification Center**: Integrated Navbar Bell with a dynamic unread badge count and a historical alert dropdown.
+- **Intelligent Bundling**: Automated message consolidation ensures users aren't spammed with multiple alerts from the same sender in a short window.
+- **Singleton Socket Manager**: Re-engineered frontend socket architecture to provide a single, app-wide persistent connection for both chat and global notifications.
 
 ### 🔐 Security & Reliability
 - **Multi-Layered Rate Limiting**: Redis-backed protection against DDoS, brute-force (Auth), and email spam (OTP).
@@ -90,9 +118,9 @@
 ### Backend Directory Structure
 ```bash
 backend/src/
-├── models/         # Mongoose Schemas (User, Chat, ConnectionRequest, Payment)
-├── routes/         # Express API Endpoints (Auth, Profile, Requests, Chat, Payment)
-├── config/         # Database, Socket, and Cloudinary configurations
+├── models/         # Mongoose Schemas (User, Chat, ConnectionRequest, Payment, Notification)
+├── routes/         # Express API Endpoints (Auth, Profile, Requests, Chat, Payment, Notifications)
+├── config/         # Database, Socket, WebPush, and Cloudinary configurations
 ├── middlewares/    # Custom auth, validation, and Multer file upload filters
 ├── utils/          # Validation, socket.js logic, and constants
 └── app.js          # Main entry point
@@ -106,7 +134,8 @@ frontend/src/
 │   ├── chat/       # Complex RTK logic and optimistic UI chat components
 │   ├── feed/       # Swiping and networking discovery hooks
 │   ├── profile/    # Master Portfolio, LeetCode & GitHub Activity Pulses
-│   └── requests/   # Request management and tab/pagination logic
+│   ├── requests/   # Request management and tab/pagination logic
+│   └── notifications/ # Global alert listener and push registration logic
 ├── components/     # Global, generic UI pieces and layouts
 ├── pages/          # Thin Layout Wrappers integrating feature components
 ├── utils/          # Redux Slices, API constants, and Socket logic
@@ -150,6 +179,8 @@ frontend/src/
    GITHUB_CLIENT_ID=your_github_id
    GITHUB_CLIENT_SECRET=your_github_secret
    GITHUB_CALLBACK_URL=http://localhost:3000/api/auth/github/callback
+   VAPID_PUBLIC_KEY=your_vapid_public_key   # For Push Notifications
+   VAPID_PRIVATE_KEY=your_vapid_private_key # For Push Notifications
    ```
 
 3. **Backend Setup**
@@ -269,7 +300,14 @@ docker compose down --volumes    # Stop and remove containers + volumes
 | :--- | :--- | :--- |
 | **GET** | `/api/chat/:targetUserId` | Fetch message history (Supports `?before=` cursor for infinite scroll) |
 | **POST** | `/api/chat/sign-upload` | Generate secure HMAC signature for direct media uploads |
-| **POST** | `/api/leetcode` | GraphQL Proxy to fetch real-time LeetCode submissions & activity |
+| **GET** | `/api/leetcode` | GraphQL Proxy to fetch real-time LeetCode submissions & activity |
+
+### 🔔 Notifications
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| **GET** | `/api/notifications` | Fetch historical alerts (Paginated, includes unread count) |
+| **PATCH** | `/api/notifications/read-all` | Mark all pending alerts as read |
+| **POST** | `/api/notifications/subscribe` | Register a new Web Push subscription for the current device |
 
 ### 💳 Payments & Premium
 | Method | Endpoint | Description |
@@ -290,7 +328,7 @@ docker compose down --volumes    # Stop and remove containers + volumes
 *Full Stack Developer & Architect*
 
 - [GitHub](https://github.com/nirajkr26)
-- [LinkedIn](https://www.linkedin.com/in/niraj-kumar-5b1b44222/)
+- [LinkedIn](https://www.linkedin.com/in/nirajkr26/)
 
 ---
 

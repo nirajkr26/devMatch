@@ -3,10 +3,14 @@ import crypto from "crypto";
 import { Chat, Message } from "../models/chat.js";
 import { ConnectionRequest } from "../models/connRequest.js";
 import User from "../models/user.js";
+import { Notification } from "../models/notification.js";
+import { sendPushNotification } from "./webPush.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 
 dotenv.config();
+
+let io;
 
 /**
  * WebSocket utility using Socket.io for real-time messaging.
@@ -22,7 +26,7 @@ const getSecretRoomId = (userId, targetUserId) => {
  * Handles authentication, room logic, and event-based communication.
  */
 const initializeSocket = (server) => {
-    const io = new Server(server, {
+    io = new Server(server, {
         cors: {
             origin: process.env.FRONTEND_URL,
             credentials: true
@@ -65,7 +69,7 @@ const initializeSocket = (server) => {
 
             // Prefetch user details once and attach to socket session
             // This avoids redundant DB calls inside frequent events like "sendMessage"
-            const user = await User.findById(decoded._id).select("firstName lastName");
+            const user = await User.findById(decoded._id).select("firstName lastName photoUrl");
             if (!user) {
                 console.log("Socket Auth Error: User document not found for ID:", decoded._id);
                 return next(new Error("User not found"));
@@ -83,6 +87,7 @@ const initializeSocket = (server) => {
      * Handle incoming socket connections
      */
     io.on("connection", (socket) => {
+        socket.join(socket.user._id.toString());
 
         // Listen for requests to join a private chat room between two users
         socket.on("joinChat", ({ userId, targetUserId }) => {
@@ -140,6 +145,47 @@ const initializeSocket = (server) => {
 
                 const savedMsg = await newMessage.save();
 
+                // 2.5: Persistent Notification for Message
+                try {
+                    // Check if recipient is already in this specific chat room
+                    const recipientRoom = io.sockets.adapter.rooms.get(roomId);
+                    const isRecipientInRoom = recipientRoom && Array.from(recipientRoom).some(sid => {
+                         const s = io.sockets.sockets.get(sid);
+                         return s && s.user._id.toString() === targetUserId.toString();
+                    });
+
+                    // Only notify if they AREN'T in the direct chat room
+                    if (!isRecipientInRoom) {
+                        // Create Record
+                        const notification = new Notification({
+                            recipient: targetUserId,
+                            sender: userId,
+                            type: "NEW_MESSAGE",
+                            relatedId: chat._id
+                        });
+                        await notification.save();
+
+                        // Global Emit
+                        io.to(targetUserId.toString()).emit("new_notification", {
+                            type: "NEW_MESSAGE",
+                            senderName: firstName,
+                            senderPhoto: socket.user.photoUrl, // Assuming photoUrl is selected
+                            text: normalizedType === "text" ? trimmedText : `sent an ${normalizedType}`
+                        });
+
+                        // Web Push
+                        sendPushNotification(targetUserId, {
+                            title: `New Message from ${firstName}! 💬`,
+                            body: normalizedType === "text" ? trimmedText : `Sent a ${normalizedType}`,
+                            icon: socket.user.photoUrl || "/favicon.ico",
+                            tag: `dm-chat-${chat._id}`, // Group notifications for same chat
+                            data: { url: `/chat/${userId}` }
+                        });
+                    }
+                } catch (notifErr) {
+                    console.error("Message Notification Error:", notifErr.message);
+                }
+
                 // 3. Acknowledge the SENDER with the real DB ID
                 if (typeof callback === "function") {
                     callback({ 
@@ -161,6 +207,13 @@ const initializeSocket = (server) => {
         })
     })
 
+}
+
+export const getIO = () => {
+    if (!io) {
+        throw new Error("Socket.io not initialized!");
+    }
+    return io;
 }
 
 export default initializeSocket;

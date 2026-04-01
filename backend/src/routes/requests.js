@@ -1,7 +1,10 @@
 import express from "express";
 import { userAuth } from "../middlewares/auth.js";
-import { ConnectionRequest } from "../models/connRequest.js";
 import User from "../models/user.js";
+import { Notification } from "../models/notification.js";
+import { getIO } from "../utils/socket.js";
+import { sendPushNotification } from "../utils/webPush.js";
+import { ConnectionRequest } from "../models/connRequest.js";
 
 const router = express.Router();
 
@@ -46,6 +49,37 @@ router.post("/request/send/:status/:toUserId", userAuth, async (req, res, next) 
         })
         const data = await connectionRequest.save();
 
+        if (status === "interested") {
+            try {
+                // Create Record
+                const notification = new Notification({
+                    recipient: toUserId,
+                    sender: fromUserId,
+                    type: "CONNECTION_REQUEST",
+                    relatedId: data._id
+                });
+                await notification.save();
+
+                // Live Emit
+                const io = getIO();
+                io.to(toUserId.toString()).emit("new_notification", {
+                    type: "CONNECTION_REQUEST",
+                    senderName: req.user.firstName,
+                    senderPhoto: req.user.photoUrl
+                });
+
+                // Web Push
+                sendPushNotification(toUserId, {
+                    title: "New Connection Request! 🤝",
+                    body: `${req.user.firstName} wants to connect with you on devMatch!`,
+                    icon: req.user.photoUrl || "/favicon.ico",
+                    data: { url: "/requests" }
+                });
+            } catch (err) {
+                console.error("Notification Error:", err.message);
+            }
+        }
+
         res.json({
             message: status + " " + toUser.firstName,
             data,
@@ -88,6 +122,37 @@ router.post("/request/review/:status/:id", userAuth, async (req, res, next) => {
         // Step 3: Update the status and save
         connectionRequest.status = status;
         const data = await connectionRequest.save();
+
+        if (status === "accepted") {
+            try {
+                // Create Record
+                const notification = new Notification({
+                    recipient: connectionRequest.fromUserId,
+                    sender: loggedInUser._id,
+                    type: "REQUEST_ACCEPTED",
+                    relatedId: connectionRequest._id
+                });
+                await notification.save();
+
+                // Live Emit
+                const io = getIO();
++                io.to(connectionRequest.fromUserId.toString()).emit("new_notification", {
+                    type: "REQUEST_ACCEPTED",
+                    senderName: loggedInUser.firstName,
+                    senderPhoto: loggedInUser.photoUrl
+                });
+
+                // Web Push
+                sendPushNotification(connectionRequest.fromUserId, {
+                    title: "Request Accepted! 🎉",
+                    body: `${loggedInUser.firstName} accepted your connection request on devMatch!`,
+                    icon: loggedInUser.photoUrl || "/favicon.ico",
+                    data: { url: "/connections" }
+                });
+            } catch (err) {
+                console.error("Acceptance Notification Error:", err.message);
+            }
+        }
 
         res.json({ message: "connection request " + status, data })
     } catch (err) {

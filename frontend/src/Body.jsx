@@ -5,6 +5,8 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { addUser } from './utils/userSlice'
 import { useGetProfileQuery } from './utils/apiSlice'
+import { connectSocket, disconnectSocket } from './utils/socket'
+import NotificationListener from './features/notifications/NotificationListener'
 
 const Body = () => {
     const dispatch = useDispatch();
@@ -30,14 +32,24 @@ const Body = () => {
         const publicPaths = ["/login", "/", "/verify-otp", "/forgot-password", "/reset-password"];
         if (error?.status === 401 && !publicPaths.includes(location.pathname)) {
             navigate("/login");
+            disconnectSocket();
         }
     }, [error, location.pathname, navigate]);
 
-    const showFooter = ["/", "/login"].includes(location.pathname);
+    useEffect(() => {
+        if (userData) {
+            connectSocket();
+        } else {
+            disconnectSocket();
+        }
+    }, [userData]);
+
+    const showFooter = ["/", "/login", "/verify-otp", "/forgot-password", "/reset-password"].includes(location.pathname);
 
     return (
         <div className="flex flex-col min-h-screen">
             <Navbar />
+            <NotificationListener />
             <main className="flex-1">
                 <Outlet />
             </main>

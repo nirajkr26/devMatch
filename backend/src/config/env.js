@@ -24,7 +24,9 @@ const requiredEnvs = [
     "GOOGLE_CALLBACK_URL",
     "GITHUB_CLIENT_ID",
     "GITHUB_CLIENT_SECRET",
-    "GITHUB_CALLBACK_URL"
+    "GITHUB_CALLBACK_URL",
+    "VAPID_PUBLIC_KEY",
+    "VAPID_PRIVATE_KEY"
 ];
 
 /**

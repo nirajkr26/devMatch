@@ -11,7 +11,7 @@ export const apiSlice = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: BASE_URL,
     }),
-    tagTypes: ["Feed", "Connections", "Requests", "User", "Chat"],
+    tagTypes: ["Feed", "Connections", "Requests", "User", "Chat", "Notifications"],
     endpoints: (builder) => ({
         // User Profile
         getProfile: builder.query({
@@ -150,6 +150,33 @@ export const apiSlice = createApi({
             }),
             invalidatesTags: ["User"],
         }),
+
+        // Notifications
+        getNotifications: builder.query({
+            query: ({ page = 1, limit = 10 } = {}) => ({
+                url: `/notifications?page=${page}&limit=${limit}`,
+                credentials: "include",
+            }),
+            providesTags: ["Notifications"],
+        }),
+
+        markNotificationsAsRead: builder.mutation({
+            query: () => ({
+                url: "/notifications/read-all",
+                method: "PATCH",
+                credentials: "include",
+            }),
+            invalidatesTags: ["Notifications"],
+        }),
+
+        subscribePush: builder.mutation({
+            query: (subscription) => ({
+                url: "/notifications/subscribe",
+                method: "POST",
+                body: subscription,
+                credentials: "include",
+            }),
+        }),
     }),
 });
 
@@ -164,5 +191,8 @@ export const {
     useReviewConnectionRequestMutation,
     useWithdrawConnectionRequestMutation,
     useUpdateProfileMutation,
-    useSignChatUploadMutation
+    useSignChatUploadMutation,
+    useGetNotificationsQuery,
+    useMarkNotificationsAsReadMutation,
+    useSubscribePushMutation
 } = apiSlice;

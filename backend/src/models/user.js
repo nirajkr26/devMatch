@@ -125,6 +125,10 @@ const userSchema = new mongoose.Schema({
         trim: true,
         maxLength: 30,
         default: "Full Stack Developer"
+    },
+    pushSubscriptions: {
+        type: Array, // Stores objects from PushManager.subscribe()
+        default: []
     }
 }, {
     timestamps: true, // Auto-manage createdAt and updatedAt fields
