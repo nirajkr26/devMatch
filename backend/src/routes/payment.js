@@ -1,10 +1,10 @@
 import express from "express";
-import { userAuth } from "../middlewares/auth.js";
-import Payment from "../models/payment.js";
-import { membershipAmount } from "../utils/constants.js";
-import User from "../models/user.js";
+import { userAuth } from "#middlewares/auth.js";
+import Payment from "#models/payment.js";
+import { membershipAmount } from "#utils/constants.js";
+import User from "#models/user.js";
 
-import paymentService from "../services/paymentService.js";
+import paymentService from "#services/paymentService.js";
 
 const router = express.Router();
 

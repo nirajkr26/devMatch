@@ -1,10 +1,10 @@
 import express from "express";
-import { userAuth } from "../middlewares/auth.js";
-import User from "../models/user.js";
-import { Notification } from "../models/notification.js";
-import { getIO } from "../utils/socket.js";
-import { sendPushNotification } from "../utils/webPush.js";
-import { ConnectionRequest } from "../models/connRequest.js";
+import { userAuth } from "#middlewares/auth.js";
+import User from "#models/user.js";
+import { Notification } from "#models/notification.js";
+import { getIO } from "#utils/socket.js";
+import { sendPushNotification } from "#utils/webPush.js";
+import { ConnectionRequest } from "#models/connRequest.js";
 
 const router = express.Router();
 

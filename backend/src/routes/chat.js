@@ -1,7 +1,7 @@
 import express from "express";
-import { Chat, Message } from "../models/chat.js";
-import { userAuth } from "../middlewares/auth.js";
-import cloudinary from "../config/cloudinary.js";
+import { Chat, Message } from "#models/chat.js";
+import { userAuth } from "#middlewares/auth.js";
+import cloudinary from "#config/cloudinary.js";
 
 const router = express.Router();
 

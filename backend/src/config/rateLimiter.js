@@ -1,6 +1,6 @@
 import rateLimit from "express-rate-limit";
 import RedisStore from "rate-limit-redis";
-import { redisClient } from "./redis.js";
+import { redisClient } from "#config/redis.js";
 
 /**
  * Factory functions to create limiters ONLY after Redis is connected

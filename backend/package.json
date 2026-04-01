@@ -9,6 +9,14 @@
     "start": "node src/app.js",
     "dev": "nodemon src/app.js"
   },
+  "imports": {
+    "#config/*": "./src/config/*",
+    "#middlewares/*": "./src/middlewares/*",
+    "#models/*": "./src/models/*",
+    "#routes/*": "./src/routes/*",
+    "#services/*": "./src/services/*",
+    "#utils/*": "./src/utils/*"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nirajkr26/devMatch.git"

@@ -1,5 +1,5 @@
 import webPush from "web-push";
-import User from "../models/user.js";
+import User from "#models/user.js";
 
 const vapidDetails = {
     subject: "mailto:nirajkumargupta2642006@gmail.com", // Replace with your support email

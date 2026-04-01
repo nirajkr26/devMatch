@@ -117,29 +117,151 @@
 
 ### Backend Directory Structure
 ```bash
-backend/src/
-├── models/         # Mongoose Schemas (User, Chat, ConnectionRequest, Payment, Notification)
-├── routes/         # Express API Endpoints (Auth, Profile, Requests, Chat, Payment, Notifications)
-├── config/         # Database, Socket, WebPush, and Cloudinary configurations
-├── middlewares/    # Custom auth, validation, and Multer file upload filters
-├── utils/          # Validation, socket.js logic, and constants
-└── app.js          # Main entry point
+backend/
+├── src/
+│   ├── app.js                      # Main entry point — Express app, startup pipeline & server bootstrap
+│   ├── config/
+│   │   ├── cloudinary.js           # Cloudinary SDK initialization (v2)
+│   │   ├── cookieConfig.js         # Shared secure cookie options (httpOnly, sameSite, maxAge)
+│   │   ├── database.js             # MongoDB connection via Mongoose
+│   │   ├── env.js                  # Loads and validates environment variables via dotenv
+│   │   ├── passport.js             # Passport.js strategies — Google OAuth 2.0 & GitHub OAuth
+│   │   ├── rateLimiter.js          # Factory functions for Redis-backed rate limiters (global / auth / OTP)
+│   │   └── redis.js                # Upstash Redis client initialization & connection helper
+│   ├── middlewares/
+│   │   ├── auth.js                 # JWT cookie verification middleware — attaches user to req
+│   │   └── multer.js               # Multer memory-buffer configuration for file uploads
+│   ├── models/
+│   │   ├── chat.js                 # Chat & Message schemas (de-embedded for infinite scalability)
+│   │   ├── connRequest.js          # ConnectionRequest schema (interested / ignored / accepted / rejected)
+│   │   ├── notification.js         # Notification schema (NEW_MESSAGE / CONNECTION_REQUEST / REQUEST_ACCEPTED)
+│   │   ├── payment.js              # Payment schema — Razorpay order & verification records
+│   │   └── user.js                 # User schema — profile, skills, OAuth IDs, membership, push subscriptions
+│   ├── routes/
+│   │   ├── auth.js                 # Auth routes — signup, login, OTP, password reset, OAuth, token exchange
+│   │   ├── chat.js                 # Chat routes — message history (cursor pagination) & signed media upload
+│   │   ├── leetcode.js             # GraphQL proxy route — fetches LeetCode stats to bypass CORS
+│   │   ├── notifications.js        # Notification routes — fetch, mark-read, Web Push subscription
+│   │   ├── payment.js              # Payment routes — Razorpay order creation & server-side verification
+│   │   ├── profile.js              # Profile routes — view, edit, photo upload, password change
+│   │   ├── requests.js             # Connection request routes — send, review, withdraw + push notifications
+│   │   └── user.js                 # User routes — feed, connections list, sent/received requests
+│   ├── services/
+│   │   └── paymentService.js       # Razorpay order & HMAC verification business logic
+│   └── utils/
+│       ├── constants.js            # App-wide constants (membership tiers, amounts, allowed fields)
+│       ├── emailTemplates.js       # HTML email template generators (OTP, password reset)
+│       ├── razorpay.js             # Razorpay SDK instance initialization
+│       ├── sendEmail.js            # Resend SDK email dispatch helper
+│       ├── socket.js               # Socket.io server — real-time chat, notifications & auth middleware
+│       ├── validation.js           # Reusable input validators (signup, profile edit)
+│       └── webPush.js              # VAPID Web Push helper — sends background push notifications
+├── .env.example                    # Environment variable template
+└── package.json                    # Dependencies & Node.js subpath import aliases (#config, #models, …)
 ```
+
+> **Path Aliases** — the backend uses Node.js native [subpath imports](https://nodejs.org/api/packages.html#subpath-imports) (defined in `package.json` `"imports"`) so internal modules are imported via clean `#`-prefixed aliases (e.g., `import User from "#models/user.js"`) instead of deep relative paths.
 
 ### Frontend Directory Structure (Feature Folder Architecture)
 ```bash
 frontend/src/
-├── features/       # Domain-driven modules (Auth, Chat, Feed, Connections, Requests, Profile)
-│   ├── auth/       # Hooks and isolated UI components for authentication
-│   ├── chat/       # Complex RTK logic and optimistic UI chat components
-│   ├── feed/       # Swiping and networking discovery hooks
-│   ├── profile/    # Master Portfolio, LeetCode & GitHub Activity Pulses
-│   ├── requests/   # Request management and tab/pagination logic
-│   └── notifications/ # Global alert listener and push registration logic
-├── components/     # Global, generic UI pieces and layouts
-├── pages/          # Thin Layout Wrappers integrating feature components
-├── utils/          # Redux Slices, API constants, and Socket logic
-└── App.jsx         # Application routing matrix
+├── App.jsx                         # Application routing matrix (React Router v6 + lazy loading)
+├── Body.jsx                        # Root layout wrapper — Navbar, outlet & global socket listener
+├── main.jsx                        # Vite entry — Redux Provider & React DOM render
+├── assets/                         # Static assets (images, audio, icons)
+├── components/
+│   ├── Card.jsx                    # Developer discovery card (Feed swipe UI)
+│   ├── EditProfile.jsx             # Live-preview profile editor
+│   ├── Footer.jsx                  # Global footer
+│   └── Navbar.jsx                  # Global navbar — notification bell, nav links, user menu
+├── features/                       # Domain-driven feature modules
+│   ├── auth/
+│   │   ├── components/
+│   │   │   ├── AuthForm.jsx        # Unified login / signup form
+│   │   │   ├── AuthTabs.jsx        # Login ↔ Signup tab switcher
+│   │   │   ├── SocialLogin.jsx     # Google & GitHub OAuth buttons
+│   │   │   └── VerifyOtpForm.jsx   # OTP input & resend UI
+│   │   ├── hooks/
+│   │   │   ├── useAuth.js          # Login / signup / logout mutations (RTK Query)
+│   │   │   ├── useForgotPassword.js
+│   │   │   ├── useResetPassword.js
+│   │   │   └── useVerifyOtp.js
+│   │   └── index.js                # Public barrel export
+│   ├── chat/
+│   │   ├── components/
+│   │   │   ├── ChatHeader.jsx      # Chat room header with connection info
+│   │   │   ├── ChatInput.jsx       # Message composer — text & media upload
+│   │   │   └── MessageBubble.jsx   # Individual message with status indicators
+│   │   ├── hooks/
+│   │   │   └── useChat.js          # Cursor-based pagination & optimistic message logic
+│   │   └── index.js
+│   ├── connections/
+│   │   ├── components/
+│   │   │   ├── ConnectionCard.jsx
+│   │   │   ├── ConnectionsEmptyState.jsx
+│   │   │   └── ConnectionsLoadingState.jsx
+│   │   ├── hooks/
+│   │   │   └── useConnections.js   # RTK Query connections fetch with pagination
+│   │   └── index.js
+│   ├── feed/
+│   │   ├── components/
+│   │   │   ├── FeedEmptyState.jsx
+│   │   │   └── FeedLoadingState.jsx
+│   │   ├── hooks/
+│   │   │   └── useFeed.js          # Discovery feed fetch & Pass / Connect actions
+│   │   └── index.js
+│   ├── landing/
+│   │   ├── components/
+│   │   │   ├── CTA.jsx             # Call-to-action section
+│   │   │   ├── FeatureShowcase.jsx # Feature highlights carousel
+│   │   │   ├── Hero.jsx            # Landing hero section
+│   │   │   └── TechMarquee.jsx     # Scrolling tech-stack ticker
+│   │   └── index.js
+│   ├── notifications/
+│   │   └── NotificationListener.jsx # Global socket listener — toast alerts & push registration
+│   ├── profile/
+│   │   └── components/
+│   │       ├── GitHubHeatmap.jsx   # GitHub contribution calendar (activity pulse)
+│   │       ├── LeetCodeHeatmap.jsx # LeetCode submission heatmap via GraphQL proxy
+│   │       ├── ProfileCV.jsx       # Full-screen Master Portfolio / technical CV
+│   │       └── TechnicalActivity.jsx # Combined activity section wrapper
+│   └── requests/
+│       ├── components/
+│       │   ├── RequestCard.jsx
+│       │   ├── RequestsEmptyState.jsx
+│       │   ├── RequestsHeader.jsx
+│       │   ├── RequestsLoadingState.jsx
+│       │   └── RequestsPagination.jsx
+│       ├── hooks/
+│       │   └── useRequests.js      # Incoming / outgoing request tabs & pagination
+│       └── index.js
+├── hooks/
+│   └── useDocumentTitle.js         # Utility hook — sets browser tab title per page
+├── pages/                          # Thin route-level wrappers that compose feature components
+│   ├── Chat.jsx
+│   ├── Connections.jsx
+│   ├── Feed.jsx
+│   ├── ForgotPassword.jsx
+│   ├── Landing.jsx
+│   ├── Login.jsx
+│   ├── PageNotFound.jsx
+│   ├── Portfolio.jsx
+│   ├── Premium.jsx
+│   ├── Profile.jsx
+│   ├── Requests.jsx
+│   ├── ResetPassword.jsx
+│   ├── SocialCallback.jsx          # OAuth token-exchange handler (cross-domain cookie flow)
+│   └── VerifyOtp.jsx
+└── utils/
+    ├── Icons.jsx                   # Centralised icon component library
+    ├── apiSlice.js                 # RTK Query API slice (base URL, tag types, all endpoints)
+    ├── appStore.js                 # Redux store configuration
+    ├── connectionSlice.js          # Connections Redux slice
+    ├── constant.js                 # Frontend constants (API base URL, etc.)
+    ├── feedSlice.js                # Feed Redux slice
+    ├── requestSlice.js             # Requests Redux slice
+    ├── socket.js                   # Singleton Socket.io client manager
+    └── userSlice.js                # Authenticated user Redux slice
 ```
 
 ---

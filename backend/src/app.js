@@ -1,23 +1,23 @@
-import "./config/env.js";
+import "#config/env.js";
 import express from "express";
-import connectDB from "./config/database.js";
+import connectDB from "#config/database.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import http from "http";
-import { connectRedis, redisClient } from "./config/redis.js";
-import { createGlobalLimiter } from "./config/rateLimiter.js";
+import { connectRedis, redisClient } from "#config/redis.js";
+import { createGlobalLimiter } from "#config/rateLimiter.js";
 import mongoose from "mongoose";
 import passport from "passport";
-import "./config/passport.js";
-import setupAuthRoutes from "./routes/auth.js";
-import profileRouter from "./routes/profile.js";
-import requestRouter from "./routes/requests.js";
-import userRouter from "./routes/user.js";
-import paymentRouter from "./routes/payment.js";
-import chatRouter from "./routes/chat.js";
-import leetcodeRouter from "./routes/leetcode.js";
-import notificationsRouter from "./routes/notifications.js";
-import initializeSocket from "./utils/socket.js";
+import "#config/passport.js";
+import setupAuthRoutes from "#routes/auth.js";
+import profileRouter from "#routes/profile.js";
+import requestRouter from "#routes/requests.js";
+import userRouter from "#routes/user.js";
+import paymentRouter from "#routes/payment.js";
+import chatRouter from "#routes/chat.js";
+import leetcodeRouter from "#routes/leetcode.js";
+import notificationsRouter from "#routes/notifications.js";
+import initializeSocket from "#utils/socket.js";
 
 const app = express();
 
