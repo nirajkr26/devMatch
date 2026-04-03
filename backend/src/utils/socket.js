@@ -87,7 +87,9 @@ const initializeSocket = (server) => {
      * Handle incoming socket connections
      */
     io.on("connection", (socket) => {
-        socket.join(socket.user._id.toString());
+        const personalRoom = socket.user._id.toString();
+        socket.join(personalRoom);
+        console.log(`[SOCKET] User "${socket.user.firstName}" connected (id: ${personalRoom}, socketId: ${socket.id})`);
 
         // Listen for requests to join a private chat room between two users
         socket.on("joinChat", ({ userId, targetUserId }) => {
@@ -111,10 +113,10 @@ const initializeSocket = (server) => {
                 }
 
                 // 1. Prioritize Broadcast to RECIPIENT (Exclude sender since they have it optimistically)
-                socket.to(roomId).emit("messageReceived", { 
-                    senderId: userId, 
-                    firstName, 
-                    lastName, 
+                socket.to(roomId).emit("messageReceived", {
+                    senderId: userId,
+                    firstName,
+                    lastName,
                     text: normalizedType === "text" ? trimmedText : "",
                     messageType: normalizedType,
                     fileUrl,
@@ -161,8 +163,8 @@ const initializeSocket = (server) => {
                     // Check if recipient is already in this specific chat room
                     const recipientRoom = io.sockets.adapter.rooms.get(roomId);
                     const isRecipientInRoom = recipientRoom && Array.from(recipientRoom).some(sid => {
-                         const s = io.sockets.sockets.get(sid);
-                         return s && s.user._id.toString() === targetUserId.toString();
+                        const s = io.sockets.sockets.get(sid);
+                        return s && s.user._id.toString() === targetUserId.toString();
                     });
 
                     // Only notify if they AREN'T in the direct chat room
@@ -199,10 +201,10 @@ const initializeSocket = (server) => {
 
                 // 3. Acknowledge the SENDER with the real DB ID
                 if (typeof callback === "function") {
-                    callback({ 
-                        status: "ok", 
-                        _id: savedMsg._id, 
-                        tempId 
+                    callback({
+                        status: "ok",
+                        _id: savedMsg._id,
+                        tempId
                     });
                 }
             } catch (err) {
@@ -216,7 +218,55 @@ const initializeSocket = (server) => {
         socket.on("disconnect", () => {
             // Cleanup or logging on disconnect can be added here
         })
+
+        /**
+         * VIDEO CALLING SIGNALING (WebRTC Relay)
+         */
+        // Initiate a call (Sends Offer)
+        socket.on("callUser", ({ userToCall, signalData, from, name, photo, type }) => {
+            const targetRoom = userToCall?.toString();
+            if (!targetRoom) return;
+
+            console.log(`[VIDEO_CALL] Initiating: ${name} (${from}) -> ${targetRoom} [${type || 'video'}]`);
+
+            // Broadcast to all sockets belonging to target user
+            io.to(targetRoom).emit("incomingCall", {
+                signal: signalData,
+                from,
+                name,
+                photo,
+                type: type || 'video'
+            });
+        });
+
+        // Answer a call (Sends Answer)
+        socket.on("answerCall", ({ to, signal }) => {
+            const targetRoom = to?.toString();
+            if (!targetRoom) return;
+
+            console.log(`[VIDEO_CALL] Accepted: sending answer to ${targetRoom}`);
+            io.to(targetRoom).emit("callAccepted", signal);
+        });
+
+        // Decline a call
+        socket.on("rejectCall", ({ to }) => {
+            const targetRoom = to?.toString();
+            if (!targetRoom) return;
+
+            console.log(`[VIDEO_CALL] Rejected: notifying ${targetRoom}`);
+            io.to(targetRoom).emit("callRejected");
+        });
+
+        // Hang up or leave call
+        socket.on("endCall", ({ to }) => {
+            const targetRoom = to?.toString();
+            if (!targetRoom) return;
+
+            console.log(`[VIDEO_CALL] Ended: notifying ${targetRoom}`);
+            io.to(targetRoom).emit("callEnded");
+        });
     })
+
 
 }
 

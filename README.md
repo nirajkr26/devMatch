@@ -6,6 +6,7 @@
 [![MongoDB](https://img.shields.io/badge/Database-MongoDB-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Styling-Tailwind_CSS-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Socket.io](https://img.shields.io/badge/Real--Time-Socket.io-010101?logo=socket.io&logoColor=white)](https://socket.io/)
+[![WebRTC](https://img.shields.io/badge/Video_Calling-WebRTC-333333?logo=webrtc&logoColor=white)](https://webrtc.org/)
 [![Redis](https://img.shields.io/badge/Cache-Redis-DC382D?logo=redis&logoColor=white)](https://redis.io/)
 [![Cloudinary](https://img.shields.io/badge/Storage-Cloudinary-3448C5?logo=cloudinary&logoColor=white)](https://cloudinary.com/)
 [![Vercel](https://img.shields.io/badge/Deployment-Vercel-000000?logo=vercel&logoColor=white)](https://vercel.com/)
@@ -20,7 +21,9 @@
 | Layer | Technology | Key Purpose in devMatch |
 | :--- | :--- | :--- |
 | **Frontend** | **React v19 + RTK Query** | Delivers a high-performance SPA with automatic cache management for infinite-scrolling chat and discovery feeds. |
+| **Forms** | **React Hook Form** | Performant, validation-rich form management with minimal re-renders across all auth and profile forms. |
 | **Styling** | **Tailwind CSS v4 + DaisyUI** | A custom glassmorphic design system tailored for the "Elite Developer" aesthetic. |
+| **Video/Audio** | **WebRTC (simple-peer-light)** | Browser-native peer-to-peer video and audio calling with Socket.io signaling relay. |
 | **Real-time** | **Socket.io + Redux Slices** | Powers sub-50ms messaging delivery and instant global notification toasts. |
 | **Backend** | **Node.js (type: module)** | A modern, asynchronous event-driven core capable of handling high-concurrency connections. |
 | **Persistence** | **MongoDB + Mongoose** | Flexible, document-based storage designed for fast iteration on developer profiles. |
@@ -56,6 +59,16 @@
 - **Rich Media Support**: Integrated image messaging with direct-to-cloud signed uploads.
 - **Device Camera Integration**: Supports standard media picker for instant photo sharing and gallery selection.
 - **Direct-to-Cloud Architecture**: Frontend uploads media directly to Cloudinary using secure backend signatures, bypassing the main server for massive scalability.
+
+### 📞 Real-Time Video & Audio Calling (WebRTC)
+- **Dual Call Modes**: Separate **Video Call** and **Audio Call** buttons — audio calls request microphone only (no camera activation), video calls request both.
+- **Peer-to-Peer Architecture**: Uses **simple-peer-light** (browser-native WebRTC) for direct media streaming between users with zero server relay overhead.
+- **Socket.io Signaling Server**: Backend relays SDP offers/answers and ICE candidates via personal user rooms for reliable call setup.
+- **Call Timeout**: Outgoing calls automatically disconnect after 20 seconds if the recipient doesn't answer, preventing ghost calls.
+- **Full-Screen Call Portal**: Immersive UI with picture-in-picture local video (video calls), large avatar display (audio calls), and glassmorphic controls.
+- **In-Call Controls**: Mute/unmute microphone, toggle camera on/off (video calls only), and one-tap hang-up.
+- **Busy Detection**: Incoming calls are auto-rejected if the user is already in an active session.
+- **Error Recovery**: Peer connection failures automatically notify the remote user and clean up all media resources.
 
 ### 👑 Premium Membership (Monetization)
 - **Tiered Plans**: Silver and Gold membership tiers with exclusive benefits.
@@ -93,7 +106,9 @@
 - **Framework**: React.js (v19)
 - **Performance**: Route-based **Lazy Loading** (Code Splitting) and **Suspense** for instant initial bundles.
 - **State Management**: Redux Toolkit & RTK Query (with custom cache merging for infinite scroll).
+- **Forms**: React Hook Form (Performant, validation-rich form management with minimal re-renders).
 - **Styling**: Tailwind CSS v4 & DaisyUI (Custom Premium Theme).
+- **Video/Audio Calling**: WebRTC via simple-peer-light (browser-native, no Node.js polyfills required).
 - **Asset Optimization**: Immutable caching and production-grade routing via `vercel.json`.
 - **HTTP Client**: Axios (Interceptors for credentials).
 - **Image Processing**: browser-image-compression (Smart max 300KB client-side optimization).
@@ -102,7 +117,7 @@
 - **Engine**: Node.js & Express.js
 - **Database**: MongoDB (Mongoose ODM)
 - **Cache & Security**: Upstash Redis (OTP storage & Speed-limiting)
-- **Real-Time**: Socket.io (Namespaced rooms for individual chats)
+- **Real-Time**: Socket.io (Namespaced rooms for individual chats & WebRTC signaling relay)
 - **Email**: Resend (HTTP SDK for transactional delivery)
 - **Verified Domain**: `support.nirajkr26.in` (Professional branding)
 - **Authentication**: JWT, Cookie-Parser, and Passport.js (Google & GitHub Strategies)
@@ -153,7 +168,7 @@ backend/
 │       ├── emailTemplates.js       # HTML email template generators (OTP, password reset)
 │       ├── razorpay.js             # Razorpay SDK instance initialization
 │       ├── sendEmail.js            # Resend SDK email dispatch helper
-│       ├── socket.js               # Socket.io server — real-time chat, notifications & auth middleware
+│       ├── socket.js               # Socket.io server — real-time chat, notifications, video call signaling & auth middleware
 │       ├── validation.js           # Reusable input validators (signup, profile edit)
 │       └── webPush.js              # VAPID Web Push helper — sends background push notifications
 ├── .env.example                    # Environment variable template
@@ -188,10 +203,13 @@ frontend/src/
 │   │   │   └── useVerifyOtp.js
 │   │   └── index.js                # Public barrel export
 │   ├── chat/
+│   │   ├── VideoCallPortal.jsx     # Full-screen call UI — incoming/outgoing/active states
 │   │   ├── components/
-│   │   │   ├── ChatHeader.jsx      # Chat room header with connection info
+│   │   │   ├── ChatHeader.jsx      # Chat room header — audio & video call buttons
 │   │   │   ├── ChatInput.jsx       # Message composer — text & media upload
 │   │   │   └── MessageBubble.jsx   # Individual message with status indicators
+│   │   ├── context/
+│   │   │   └── VideoCallContext.jsx # WebRTC peer connection manager — call lifecycle, media & signaling
 │   │   ├── hooks/
 │   │   │   └── useChat.js          # Cursor-based pagination & optimistic message logic
 │   │   └── index.js
@@ -436,6 +454,18 @@ docker compose down --volumes    # Stop and remove containers + volumes
 | :--- | :--- | :--- |
 | **POST** | `/api/payment/create` | Initialize Razorpay order for Silver/Gold |
 | **POST** | `/api/payment/verify` | Server-side signature verification of payment |
+
+### 📞 Real-Time Socket Events (Video/Audio Calling)
+| Event | Direction | Description |
+| :--- | :--- | :--- |
+| `callUser` | Client → Server | Initiates a call — relays SDP offer + call type (`audio`/`video`) to recipient's room |
+| `incomingCall` | Server → Client | Notifies recipient of an incoming call with signal data, caller info, and call type |
+| `answerCall` | Client → Server | Sends SDP answer back to the caller |
+| `callAccepted` | Server → Client | Notifies caller that the recipient accepted — delivers answer signal |
+| `rejectCall` | Client → Server | Declines an incoming call |
+| `callRejected` | Server → Client | Notifies caller that the call was declined |
+| `endCall` | Client → Server | Hangs up an active or ringing call |
+| `callEnded` | Server → Client | Notifies remote peer that the call has been terminated |
 
 ### 🏥 System Status
 | Method | Endpoint | Description |

@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeftIcon } from '@/utils/Icons';
+import { VideoIcon, PhoneIcon, ArrowLeftIcon } from '@/utils/Icons';
+import { useVideoCall } from '../context/VideoCallContext';
 
 export const ChatHeader = ({ targetUser }) => {
+    const { callUser } = useVideoCall();
     return (
         <div className='px-6 py-4 bg-base-300 border-b border-base-200 flex items-center justify-between'>
             <div className='flex items-center gap-4'>
@@ -29,6 +31,21 @@ export const ChatHeader = ({ targetUser }) => {
                         <span className='text-[10px] font-black uppercase tracking-widest opacity-40'>Active Professional</span>
                     </div>
                 </div>
+            </div>
+
+            <div className='flex items-center gap-2'>
+                <button
+                    onClick={() => callUser(targetUser?._id, `${targetUser?.firstName} ${targetUser?.lastName}`, targetUser?.photoUrl, 'audio')}
+                    className='btn btn-ghost btn-circle btn-sm hover:bg-primary/10 hover:text-primary transition-all duration-300 active:scale-90 group'
+                >
+                    <PhoneIcon className="w-5 h-5 opacity-40 group-hover:opacity-100" />
+                </button>
+                <button
+                    onClick={() => callUser(targetUser?._id, `${targetUser?.firstName} ${targetUser?.lastName}`, targetUser?.photoUrl, 'video')}
+                    className='btn btn-ghost btn-circle btn-sm hover:bg-primary/10 hover:text-primary transition-all duration-300 active:scale-90 group'
+                >
+                    <VideoIcon className="w-5 h-5 opacity-40 group-hover:opacity-100" />
+                </button>
             </div>
         </div>
     );

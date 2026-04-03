@@ -9,6 +9,8 @@
   --animate-float: float 6s ease-in-out infinite;
   --animate-marquee: marquee 30s linear infinite;
   --animate-gradient: gradient 3s infinite;
+  --animate-bounce-subtle: bounce-subtle 3s ease-in-out infinite;
+  --animate-spin-slow: spin 4s linear infinite;
 }
 
 @keyframes blob {
@@ -33,6 +35,15 @@
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
+}
+
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.mirror {
+  transform: scaleX(-1);
 }
 
 .perspective-1000 {

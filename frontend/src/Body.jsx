@@ -7,6 +7,8 @@ import { addUser } from './utils/userSlice'
 import { useGetProfileQuery } from './utils/apiSlice'
 import { connectSocket, disconnectSocket } from './utils/socket'
 import NotificationListener from './features/notifications/NotificationListener'
+import { VideoCallProvider } from './features/chat/context/VideoCallContext'
+import VideoCallPortal from './features/chat/VideoCallPortal'
 
 const Body = () => {
     const dispatch = useDispatch();
@@ -14,13 +16,11 @@ const Body = () => {
     const location = useLocation();
     const userData = useSelector((store) => store.user);
 
-    // RTK Query hook handles everything including caching
     const { data: profile, error, isLoading } = useGetProfileQuery();
 
     useEffect(() => {
         if (profile) {
             dispatch(addUser(profile));
-            // Redirect from landing to feed if already logged in
             if (location.pathname === "/") {
                 navigate("/feed");
             }
@@ -28,7 +28,6 @@ const Body = () => {
     }, [profile, dispatch, location.pathname, navigate]);
 
     useEffect(() => {
-        // Handle unauthorized access to protected routes
         const publicPaths = ["/login", "/", "/verify-otp", "/forgot-password", "/reset-password"];
         if (error?.status === 401 && !publicPaths.includes(location.pathname)) {
             navigate("/login");
@@ -36,6 +35,7 @@ const Body = () => {
         }
     }, [error, location.pathname, navigate]);
 
+    // Socket lifecycle
     useEffect(() => {
         if (userData) {
             connectSocket();
@@ -46,14 +46,28 @@ const Body = () => {
 
     const showFooter = ["/", "/login", "/verify-otp", "/forgot-password", "/reset-password"].includes(location.pathname);
 
-    return (
-        <div className="flex flex-col min-h-screen">
+    // Inner content wrapped conditionally with VideoCallProvider
+    const content = (
+        <>
             <Navbar />
             <NotificationListener />
             <main className="flex-1">
                 <Outlet />
             </main>
             {showFooter && <Footer />}
+        </>
+    );
+
+    return (
+        <div className="flex flex-col min-h-screen">
+            {userData ? (
+                <VideoCallProvider>
+                    <VideoCallPortal />
+                    {content}
+                </VideoCallProvider>
+            ) : (
+                content
+            )}
         </div>
     )
 }

@@ -88,9 +88,11 @@ const NotificationListener = () => {
             notificationTracker.current[senderName] = now;
 
             // 🔊 Play Ping Sound (User opted-in by standard interaction usually)
-            audioRef.current.play().catch(() => {
-                // Silently fails if user hasn't interacted with DOM yet
-            });
+            if (audioRef.current) {
+                audioRef.current.play().catch(() => {
+                    // Silently fails if user hasn't interacted with DOM yet
+                });
+            }
 
             // 🥞 Custom Premium Toast
             toast.custom((t) => (
