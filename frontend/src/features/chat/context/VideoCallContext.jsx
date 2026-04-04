@@ -3,6 +3,7 @@ import Peer from 'simple-peer-light';
 import { useSelector } from 'react-redux';
 import { getSocket } from '@/utils/socket';
 import { toast } from 'react-hot-toast';
+import getIceServers from '@/utils/iceServers';
 
 const VideoCallContext = createContext(null);
 
@@ -168,10 +169,7 @@ export const VideoCallProvider = ({ children }) => {
             trickle: false,
             stream: localStream,
             config: {
-                iceServers: [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' },
-                ]
+                iceServers: getIceServers()
             }
         });
 
@@ -225,10 +223,7 @@ export const VideoCallProvider = ({ children }) => {
             trickle: false,
             stream: localStream,
             config: {
-                iceServers: [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' },
-                ]
+                iceServers: getIceServers()
             }
         });
 
