@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useGetRequestsQuery, useGetSentRequestsQuery, useReviewConnectionRequestMutation, useWithdrawConnectionRequestMutation } from '@/utils/apiSlice';
 
 export const useRequests = () => {
@@ -17,21 +17,21 @@ export const useRequests = () => {
     const isLoading = isLoadingReceived || isLoadingSent;
     const currentRequests = activeTab === 'received' ? receivedRequests : sentRequests;
 
-    const handleReview = async (status, requestId) => {
+    const handleReview = useCallback(async (status, requestId) => {
         try {
             await reviewConnectionRequest({ status, requestId }).unwrap();
         } catch (err) {
             console.error(err.response?.data || err.message);
         }
-    };
+    }, [reviewConnectionRequest]);
 
-    const handleWithdraw = async (requestId) => {
+    const handleWithdraw = useCallback(async (requestId) => {
         try {
             await withdrawConnectionRequest(requestId).unwrap();
         } catch (err) {
             console.error(err.response?.data || err.message);
         }
-    };
+    }, [withdrawConnectionRequest]);
 
     return {
         activeTab,

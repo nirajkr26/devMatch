@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const MessageBubble = ({ msg, isSender, userPhotoUrl, targetUserPhotoUrl, onImageLoad, onImageClick }) => {
+export const MessageBubble = React.memo(({ msg, isSender, userPhotoUrl, targetUserPhotoUrl, onImageLoad, onImageClick }) => {
     const resolveFileName = () => {
         if (msg.fileName) return msg.fileName;
         if (!msg.fileUrl) return "file";
@@ -16,7 +16,7 @@ export const MessageBubble = ({ msg, isSender, userPhotoUrl, targetUserPhotoUrl,
         <div className={"chat " + (isSender ? "chat-end" : "chat-start") + " group animate-fadeInUp"}>
             <div className="chat-image avatar">
                 <div className="w-10 rounded-xl shadow-lg ring-2 ring-base-100 ring-offset-2 ring-offset-base-300 overflow-hidden bg-base-300">
-                    <img src={(isSender ? userPhotoUrl : targetUserPhotoUrl) || "/default-avatar.png"} alt="avatar" />
+                    <img src={(isSender ? userPhotoUrl : targetUserPhotoUrl) || "/default-avatar.png"} alt="avatar" loading="lazy" />
                 </div>
             </div>
             <div className={"chat-header mb-1 mx-2 flex items-center gap-2 " + (msg.status === "pending" ? "opacity-40" : "")}>
@@ -73,4 +73,6 @@ export const MessageBubble = ({ msg, isSender, userPhotoUrl, targetUserPhotoUrl,
             </div>
         </div>
     );
-};
+});
+
+MessageBubble.displayName = "MessageBubble";

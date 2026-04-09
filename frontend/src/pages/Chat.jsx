@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { DirectMessageIcon } from '@/utils/Icons';
 import { useChat, ChatHeader, ChatInput, MessageBubble } from '@/features/chat';
@@ -32,13 +32,13 @@ const Chat = () => {
 
     useDocumentTitle(targetUser ? `Chat with ${targetUser.firstName}` : "Direct Message");
 
-    // Scroll optimization for image loads
-    const checkScrollAndScrollToBottom = () => {
+    // Scroll optimization for image loads – stable reference so MessageBubble doesn't re-render
+    const checkScrollAndScrollToBottom = useCallback(() => {
         const container = chatContainerRef.current;
         if (container && container.scrollHeight - container.scrollTop - container.clientHeight < 400) {
             scrollToBottom();
         }
-    };
+    }, [chatContainerRef, scrollToBottom]);
 
     React.useEffect(() => {
         if (!lightboxImageUrl) return;

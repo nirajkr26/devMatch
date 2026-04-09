@@ -1,7 +1,7 @@
 import React from 'react'
 import { useSendConnectionRequestMutation } from '@/utils/apiSlice'
 
-const Card = ({ user, isPreview = false, onViewProfile }) => {
+const Card = React.memo(({ user, isPreview = false, onViewProfile }) => {
     const [sendRequest] = useSendConnectionRequestMutation();
 
     if (!user) return null;
@@ -105,6 +105,8 @@ const Card = ({ user, isPreview = false, onViewProfile }) => {
             </div>
         </div>
     )
-}
+})
+
+Card.displayName = "Card"
 
 export default Card

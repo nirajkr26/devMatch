@@ -32,6 +32,10 @@ const connectionRequestSchema = new mongoose.Schema({
 // Index for optimizing queries that check relationship between two specific users
 connectionRequestSchema.index({ fromUserId: 1, toUserId: 1 });
 
+// Indexes for fast status-based lookups used in feed, received-requests, and sent-requests routes
+connectionRequestSchema.index({ toUserId: 1, status: 1 });
+connectionRequestSchema.index({ fromUserId: 1, status: 1 });
+
 /**
  * Validation hook before saving to prevent users from requesting themselves.
  */

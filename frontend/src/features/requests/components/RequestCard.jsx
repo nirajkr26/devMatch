@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const RequestCard = ({ request, activeTab, onReview, onWithdraw }) => {
+export const RequestCard = React.memo(({ request, activeTab, onReview, onWithdraw }) => {
     const userData = activeTab === 'received' ? request.fromUserId : request.toUserId;
     const { _id, firstName, lastName, age, gender, about, photoUrl, skills } = userData;
 
@@ -12,6 +12,7 @@ export const RequestCard = ({ request, activeTab, onReview, onWithdraw }) => {
                         alt="profile"
                         className="rounded-3xl w-20 h-20 md:w-24 md:h-24 object-cover ring-2 ring-base-200 group-hover:ring-secondary/40 transition-all duration-500"
                         src={photoUrl || "/default-avatar.png"}
+                        loading="lazy"
                     />
                     {activeTab === 'received' && (
                         <div className="absolute -top-1 -right-1 badge badge-secondary badge-xs p-1.5 border-4 border-base-300 shadow-lg"></div>
@@ -67,4 +68,6 @@ export const RequestCard = ({ request, activeTab, onReview, onWithdraw }) => {
             </div>
         </div>
     );
-};
+});
+
+RequestCard.displayName = "RequestCard";
