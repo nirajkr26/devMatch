@@ -55,7 +55,7 @@ const Chat = () => {
                 />
             );
         })
-    ), [messages, userId, user?.photoUrl, targetUser?.photoUrl, checkScrollAndScrollToBottom]);
+    ), [messages, userId, user?.photoUrl, targetUser?.photoUrl, checkScrollAndScrollToBottom, setLightboxImageUrl]);
 
     React.useEffect(() => {
         if (!lightboxImageUrl) return;
