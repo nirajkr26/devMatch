@@ -130,7 +130,7 @@ const Navbar = () => {
                                         >
                                             <div className="avatar h-10 w-10 shrink-0">
                                                 <div className="rounded-xl overflow-hidden shadow-md">
-                                                    <img src={notif.sender?.photoUrl || "/default-avatar.png"} alt="sender" />
+                                                    <img src={notif.sender?.photoUrl || "/default-avatar.png"} alt="sender" loading="lazy" />
                                                 </div>
                                             </div>
                                             <div className="flex flex-col gap-0.5">

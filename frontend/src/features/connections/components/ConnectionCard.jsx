@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { MessageIcon } from '@/utils/Icons';
 
-export const ConnectionCard = ({ connection }) => {
+export const ConnectionCard = React.memo(({ connection }) => {
     const { _id, firstName, lastName, age, gender, about, photoUrl, skills } = connection;
 
     return (
@@ -16,6 +16,7 @@ export const ConnectionCard = ({ connection }) => {
                         alt="profile"
                         className="rounded-3xl w-20 h-20 md:w-24 md:h-24 object-cover ring-4 ring-base-100 group-hover:ring-primary/40 transition-all duration-700 shadow-xl"
                         src={photoUrl || "/default-avatar.png"}
+                        loading="lazy"
                     />
                     <div className="absolute bottom-2 right-2 w-4 h-4 bg-success border-2 border-base-300 rounded-full shadow-lg"></div>
                 </div>
@@ -53,4 +54,6 @@ export const ConnectionCard = ({ connection }) => {
             </div>
         </div>
     );
-};
+});
+
+ConnectionCard.displayName = "ConnectionCard";

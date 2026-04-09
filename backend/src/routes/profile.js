@@ -1,5 +1,5 @@
 import express from "express";
-import { userAuth } from "#middlewares/auth.js";
+import { userAuth, invalidateUserCache } from "#middlewares/auth.js";
 import { validateProfileEditData } from "#utils/validation.js";
 import User from "#models/user.js";
 import validator from "validator";
@@ -40,6 +40,9 @@ router.patch("/profile/edit", userAuth, async (req, res, next) => {
 
         // Persist changes to database. Mongoose handles validation of values.
         await loggedUser.save();
+
+        // Invalidate the cached user document so the next request gets fresh data
+        await invalidateUserCache(loggedUser._id);
 
         res.json({
             message: `${loggedUser.firstName} ! your profile updated successfully`,
@@ -110,6 +113,9 @@ router.patch("/profile/password", userAuth, async (req, res, next) => {
         // Step 3: Update and save (hashing happens in User model pre-save hook)
         loggedUser.password = newPassword;
         await loggedUser.save();
+
+        // Invalidate cached user document after credential change
+        await invalidateUserCache(loggedUser._id);
 
         res.send("password updated successfully")
 
