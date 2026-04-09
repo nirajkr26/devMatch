@@ -80,15 +80,17 @@ const MessageBubbleComponent = ({ msg, isSender, userPhotoUrl, targetUserPhotoUr
 };
 
 export const MessageBubble = React.memo(MessageBubbleComponent, (prevProps, nextProps) =>
-    prevProps.msg?._id === nextProps.msg?._id &&
-    prevProps.msg?.status === nextProps.msg?.status &&
-    prevProps.msg?.text === nextProps.msg?.text &&
-    prevProps.msg?.fileUrl === nextProps.msg?.fileUrl &&
-    prevProps.msg?.fileName === nextProps.msg?.fileName &&
-    prevProps.msg?.messageType === nextProps.msg?.messageType &&
-    prevProps.msg?.senderId === nextProps.msg?.senderId &&
-    prevProps.msg?.createdAt === nextProps.msg?.createdAt &&
-    prevProps.msg?.firstName === nextProps.msg?.firstName &&
+    (prevProps.msg === nextProps.msg || (
+        prevProps.msg?._id === nextProps.msg?._id &&
+        prevProps.msg?.status === nextProps.msg?.status &&
+        prevProps.msg?.text === nextProps.msg?.text &&
+        prevProps.msg?.fileUrl === nextProps.msg?.fileUrl &&
+        prevProps.msg?.fileName === nextProps.msg?.fileName &&
+        prevProps.msg?.messageType === nextProps.msg?.messageType &&
+        prevProps.msg?.senderId === nextProps.msg?.senderId &&
+        prevProps.msg?.createdAt === nextProps.msg?.createdAt &&
+        prevProps.msg?.firstName === nextProps.msg?.firstName
+    )) &&
     prevProps.isSender === nextProps.isSender &&
     prevProps.userPhotoUrl === nextProps.userPhotoUrl &&
     prevProps.targetUserPhotoUrl === nextProps.targetUserPhotoUrl &&
