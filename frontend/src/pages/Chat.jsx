@@ -33,12 +33,29 @@ const Chat = () => {
     useDocumentTitle(targetUser ? `Chat with ${targetUser.firstName}` : "Direct Message");
 
     // Scroll optimization for image loads
-    const checkScrollAndScrollToBottom = () => {
+    const checkScrollAndScrollToBottom = React.useCallback(() => {
         const container = chatContainerRef.current;
         if (container && container.scrollHeight - container.scrollTop - container.clientHeight < 400) {
             scrollToBottom();
         }
-    };
+    }, [chatContainerRef, scrollToBottom]);
+
+    const renderedMessages = React.useMemo(() => (
+        messages.map((msg) => {
+            const isSender = userId === msg.senderId;
+            return (
+                <MessageBubble
+                    key={msg._id}
+                    msg={msg}
+                    isSender={isSender}
+                    userPhotoUrl={user?.photoUrl}
+                    targetUserPhotoUrl={targetUser?.photoUrl}
+                    onImageLoad={checkScrollAndScrollToBottom}
+                    onImageClick={setLightboxImageUrl}
+                />
+            );
+        })
+    ), [messages, userId, user?.photoUrl, targetUser?.photoUrl, checkScrollAndScrollToBottom]);
 
     React.useEffect(() => {
         if (!lightboxImageUrl) return;
@@ -81,20 +98,7 @@ const Chat = () => {
                         <p className="font-black uppercase tracking-[0.3em] text-[10px]">Your professional journey starts with a hello.</p>
                     </div>
                 ) : (
-                    messages.map((msg) => {
-                        const isSender = userId === msg.senderId;
-                        return (
-                            <MessageBubble 
-                                key={msg._id}
-                                msg={msg}
-                                isSender={isSender}
-                                userPhotoUrl={user?.photoUrl}
-                                targetUserPhotoUrl={targetUser?.photoUrl}
-                                onImageLoad={checkScrollAndScrollToBottom}
-                                onImageClick={setLightboxImageUrl}
-                            />
-                        )
-                    })
+                    renderedMessages
                 )}
                 <div ref={messagesEndRef} />
             </div>

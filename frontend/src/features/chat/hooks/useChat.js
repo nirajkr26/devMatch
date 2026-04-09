@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useSelector } from "react-redux";
 import { getSocket } from '@/utils/socket';
 import { useGetChatQuery, useGetConnectionsQuery, useSignChatUploadMutation } from '@/utils/apiSlice';
@@ -68,9 +68,9 @@ export const useChat = (targetUserId) => {
         };
     }, [messages, isFetching, isLoading, hasMore]);
 
-    const scrollToBottom = () => {
+    const scrollToBottom = useCallback(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
+    }, []);
 
     // Advanced Scroll Anchoring
     React.useLayoutEffect(() => {
@@ -95,14 +95,14 @@ export const useChat = (targetUserId) => {
         prevMessagesLenRef.current = messages.length;
     }, [messages]);
 
-    const findTargetUser = () => {
+    const findTargetUser = useCallback(() => {
         const connectionsArr = sessionConnections?.data || connections;
         if (connectionsArr) {
             const found = connectionsArr.find(c => c._id === targetUserId);
             if (found) return found;
         }
         return null;
-    }
+    }, [sessionConnections, connections, targetUserId]);
 
     // Reset local state when switching to a different user's chat
     useEffect(() => {
@@ -144,7 +144,7 @@ export const useChat = (targetUserId) => {
                 });
             }
         }
-    }, [targetUserId, connections, chatMessages, sessionConnections]);
+    }, [targetUserId, chatMessages, findTargetUser]);
 
     useEffect(() => {
         if (!uploadError) return;
@@ -164,7 +164,7 @@ export const useChat = (targetUserId) => {
         socketRef.current = currentSocket;
         currentSocket.emit("joinChat", { userId, targetUserId });
 
-        const handleMessageReceived = ({ senderId, firstName, lastName, text, messageType, fileUrl, fileName, tempId }) => {
+        const handleMessageReceived = ({ senderId, firstName, lastName, text, messageType, fileUrl, fileName }) => {
             setMessages((prevMessages) => [...prevMessages, {
                 senderId,
                 firstName,

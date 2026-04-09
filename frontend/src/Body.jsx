@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { Suspense, lazy, useEffect } from 'react'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
@@ -6,17 +6,24 @@ import { useDispatch, useSelector } from 'react-redux'
 import { addUser } from './utils/userSlice'
 import { useGetProfileQuery } from './utils/apiSlice'
 import { connectSocket, disconnectSocket } from './utils/socket'
-import NotificationListener from './features/notifications/NotificationListener'
-import { VideoCallProvider } from './features/chat/context/VideoCallContext'
-import VideoCallPortal from './features/chat/VideoCallPortal'
+
+const NotificationListener = lazy(() => import('./features/notifications/NotificationListener'))
+const VideoCallProvider = lazy(() =>
+    import('./features/chat/context/VideoCallContext').then((module) => ({ default: module.VideoCallProvider }))
+)
+const VideoCallPortal = lazy(() => import('./features/chat/VideoCallPortal'))
+
+const AUTH_PUBLIC_PATHS = ["/login", "/verify-otp", "/forgot-password", "/reset-password"];
+const FOOTER_PATHS = ["/", "/login", "/verify-otp", "/forgot-password", "/reset-password"];
 
 const Body = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
     const userData = useSelector((store) => store.user);
+    const shouldSkipProfileQuery = AUTH_PUBLIC_PATHS.includes(location.pathname);
 
-    const { data: profile, error, isLoading } = useGetProfileQuery();
+    const { data: profile, error } = useGetProfileQuery(undefined, { skip: shouldSkipProfileQuery });
 
     useEffect(() => {
         if (profile) {
@@ -28,7 +35,7 @@ const Body = () => {
     }, [profile, dispatch, location.pathname, navigate]);
 
     useEffect(() => {
-        const publicPaths = ["/login", "/", "/verify-otp", "/forgot-password", "/reset-password"];
+        const publicPaths = ["/", ...AUTH_PUBLIC_PATHS];
         if (error?.status === 401 && !publicPaths.includes(location.pathname)) {
             navigate("/login");
             disconnectSocket();
@@ -44,13 +51,17 @@ const Body = () => {
         }
     }, [userData]);
 
-    const showFooter = ["/", "/login", "/verify-otp", "/forgot-password", "/reset-password"].includes(location.pathname);
+    const showFooter = FOOTER_PATHS.includes(location.pathname);
 
     // Inner content wrapped conditionally with VideoCallProvider
     const content = (
         <>
             <Navbar />
-            <NotificationListener />
+            {userData && (
+                <Suspense fallback={null}>
+                    <NotificationListener />
+                </Suspense>
+            )}
             <main className="flex-1">
                 <Outlet />
             </main>
@@ -61,10 +72,12 @@ const Body = () => {
     return (
         <div className="flex flex-col min-h-screen">
             {userData ? (
-                <VideoCallProvider>
-                    <VideoCallPortal />
-                    {content}
-                </VideoCallProvider>
+                <Suspense fallback={content}>
+                    <VideoCallProvider>
+                        <VideoCallPortal />
+                        {content}
+                    </VideoCallProvider>
+                </Suspense>
             ) : (
                 content
             )}

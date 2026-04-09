@@ -1,7 +1,7 @@
 import React from 'react';
 
-export const MessageBubble = ({ msg, isSender, userPhotoUrl, targetUserPhotoUrl, onImageLoad, onImageClick }) => {
-    const resolveFileName = () => {
+const MessageBubbleComponent = ({ msg, isSender, userPhotoUrl, targetUserPhotoUrl, onImageLoad, onImageClick }) => {
+    const resolvedFileName = React.useMemo(() => {
         if (msg.fileName) return msg.fileName;
         if (!msg.fileUrl) return "file";
         try {
@@ -10,7 +10,11 @@ export const MessageBubble = ({ msg, isSender, userPhotoUrl, targetUserPhotoUrl,
         } catch {
             return "file";
         }
-    };
+    }, [msg.fileName, msg.fileUrl]);
+
+    const displayTime = React.useMemo(() => (
+        msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""
+    ), [msg.createdAt]);
 
     return (
         <div className={"chat " + (isSender ? "chat-end" : "chat-start") + " group animate-fadeInUp"}>
@@ -24,7 +28,7 @@ export const MessageBubble = ({ msg, isSender, userPhotoUrl, targetUserPhotoUrl,
                     {isSender ? "You" : `${msg.firstName}`}
                 </span>
                 <time className="text-[9px] opacity-20 font-bold group-hover:opacity-60 transition-opacity flex items-center gap-1">
-                    {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
+                    {displayTime}
                     {isSender && (
                         <span className="scale-75 translate-y-[-1px]">
                             {msg.status === "pending" && <span className="loading loading-spinner w-3 h-3"></span>}
@@ -65,7 +69,7 @@ export const MessageBubble = ({ msg, isSender, userPhotoUrl, targetUserPhotoUrl,
                         className="inline-flex items-center gap-2 underline underline-offset-2 break-all"
                     >
                         <span>Download</span>
-                        <span>{resolveFileName()}</span>
+                        <span>{resolvedFileName}</span>
                     </a>
                 ) : (
                     msg.text
@@ -74,3 +78,12 @@ export const MessageBubble = ({ msg, isSender, userPhotoUrl, targetUserPhotoUrl,
         </div>
     );
 };
+
+export const MessageBubble = React.memo(MessageBubbleComponent, (prevProps, nextProps) =>
+    prevProps.msg === nextProps.msg &&
+    prevProps.isSender === nextProps.isSender &&
+    prevProps.userPhotoUrl === nextProps.userPhotoUrl &&
+    prevProps.targetUserPhotoUrl === nextProps.targetUserPhotoUrl &&
+    prevProps.onImageLoad === nextProps.onImageLoad &&
+    prevProps.onImageClick === nextProps.onImageClick
+);
