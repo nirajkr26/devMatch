@@ -130,6 +130,117 @@
 
 ## 📁 System Architecture
 
+### High-Level System Architecture (Mermaid)
+```mermaid
+flowchart LR
+    User["Developer User"]
+
+    subgraph Frontend["Frontend (React SPA)"]
+        Browser["Browser UI"]
+        SW["Service Worker (Web Push)"]
+    end
+
+    subgraph Backend["Backend (Node.js + Express)"]
+        API["REST API Routes"]
+        Socket["Socket.io Server"]
+        Auth["Auth & Business Logic"]
+    end
+
+    Mongo[("MongoDB (Mongoose)")]
+    Redis[("Upstash Redis")]
+
+    OAuth["Google/GitHub OAuth"]
+    Razorpay["Razorpay"]
+    Cloudinary["Cloudinary"]
+    Resend["Resend Email"]
+    LeetCode["LeetCode GraphQL"]
+    WebPush["Push Service (VAPID)"]
+
+    User --> Browser
+    Browser --> API
+    Browser <--> Socket
+    Browser --> SW
+    API --> Auth
+    Socket --> Auth
+    Auth <--> Mongo
+    Auth <--> Redis
+    Auth <--> OAuth
+    Auth <--> Razorpay
+    Auth <--> Cloudinary
+    Auth <--> Resend
+    Auth <--> LeetCode
+    SW <--> WebPush
+    Auth --> WebPush
+```
+
+### Database Schema (Mermaid ER Diagram)
+```mermaid
+erDiagram
+    USER {
+        objectId _id PK
+        string firstName
+        string emailId UK
+        string password
+        boolean isPremium
+        string membershipType
+        datetime createdAt
+    }
+
+    CONNECTION_REQUEST {
+        objectId _id PK
+        objectId fromUserId FK
+        objectId toUserId FK
+        string status
+        datetime createdAt
+    }
+
+    CHAT {
+        objectId _id PK
+        objectId[] participants
+        datetime createdAt
+    }
+
+    MESSAGE {
+        objectId _id PK
+        objectId chatId FK
+        objectId senderId FK
+        string text
+        string messageType
+        string fileUrl
+        datetime createdAt
+    }
+
+    NOTIFICATION {
+        objectId _id PK
+        objectId recipient FK
+        objectId sender FK
+        string type
+        boolean isRead
+        objectId relatedId
+        datetime createdAt
+    }
+
+    PAYMENT {
+        objectId _id PK
+        objectId userId FK
+        string orderId
+        string paymentId
+        string status
+        number amount
+        string currency
+        datetime createdAt
+    }
+
+    USER ||--o{ CONNECTION_REQUEST : sends
+    USER ||--o{ CONNECTION_REQUEST : receives
+    USER }o--o{ CHAT : participates_in
+    CHAT ||--o{ MESSAGE : contains
+    USER ||--o{ MESSAGE : sends
+    USER ||--o{ NOTIFICATION : receives
+    USER ||--o{ NOTIFICATION : triggers
+    USER ||--o{ PAYMENT : makes
+```
+
 ### Backend Directory Structure
 ```bash
 backend/
