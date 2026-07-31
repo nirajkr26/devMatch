@@ -132,45 +132,77 @@
 
 ### High-Level System Architecture (Mermaid)
 ```mermaid
-flowchart LR
+flowchart TB
     User["Developer User"]
 
-    subgraph Frontend["Frontend (React SPA)"]
-        Browser["Browser UI"]
-        SW["Service Worker (Web Push)"]
+    subgraph FE["Frontend (React + Redux Toolkit)"]
+        UI["Pages / Components"]
+        Router["React Router"]
+        RTK["RTK Query API Slice"]
+        SocketClient["Socket.io Client (Singleton)"]
+        VideoCtx["WebRTC VideoCallContext"]
+        SW["Service Worker"]
     end
 
-    subgraph Backend["Backend (Node.js + Express)"]
-        API["REST API Routes"]
-        Socket["Socket.io Server"]
-        Auth["Auth & Business Logic"]
+    subgraph BE["Backend (Node.js + Express)"]
+        App["app.js Bootstrap"]
+        Middleware["CORS + Cookies + JWT Auth + Rate Limiter"]
+
+        subgraph Routes["REST Route Layer (/api/*)"]
+            AuthR["auth.js"]
+            ProfileR["profile.js"]
+            RequestR["requests.js"]
+            UserR["user.js"]
+            ChatR["chat.js"]
+            NotificationR["notifications.js"]
+            PaymentR["payment.js"]
+            LeetR["leetcode.js"]
+        end
+
+        Services["Business Services + Validators"]
+        SocketServer["Socket.io Server\n(chat + notifications + call signaling)"]
     end
 
-    Mongo[("MongoDB (Mongoose)")]
-    Redis[("Upstash Redis")]
+    subgraph DATA["Data & Cache Layer"]
+        Mongo[("MongoDB (Mongoose Models)")]
+        Redis[("Upstash Redis")]
+    end
 
-    OAuth["Google/GitHub OAuth"]
-    Razorpay["Razorpay"]
-    Cloudinary["Cloudinary"]
-    Resend["Resend Email"]
-    LeetCode["LeetCode GraphQL"]
-    WebPush["Push Service (VAPID)"]
+    subgraph EXT["External Integrations"]
+        OAuth["Google/GitHub OAuth"]
+        Razorpay["Razorpay Payments"]
+        Cloudinary["Cloudinary Media"]
+        Resend["Resend Email"]
+        LeetCode["LeetCode GraphQL"]
+        Push["Web Push (VAPID)"]
+    end
 
-    User --> Browser
-    Browser --> API
-    Browser <--> Socket
-    Browser --> SW
-    API --> Auth
-    Socket --> Auth
-    Auth <--> Mongo
-    Auth <--> Redis
-    Auth <--> OAuth
-    Auth <--> Razorpay
-    Auth <--> Cloudinary
-    Auth <--> Resend
-    Auth <--> LeetCode
-    SW <--> WebPush
-    Auth --> WebPush
+    User --> UI
+    UI --> Router
+    Router --> RTK
+    UI <--> SocketClient
+    UI <--> VideoCtx
+    UI --> SW
+
+    RTK --> App
+    SocketClient <--> SocketServer
+    VideoCtx <--> SocketServer
+
+    App --> Middleware
+    Middleware --> Routes
+    Routes --> Services
+    Services <--> Mongo
+    Services <--> Redis
+    SocketServer <--> Mongo
+    SocketServer <--> Redis
+
+    Services <--> OAuth
+    Services <--> Razorpay
+    Services <--> Cloudinary
+    Services <--> Resend
+    Services <--> LeetCode
+    Services --> Push
+    SW <--> Push
 ```
 
 ### Database Schema (Mermaid ER Diagram)
