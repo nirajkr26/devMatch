@@ -130,6 +130,149 @@
 
 ## 📁 System Architecture
 
+### High-Level System Architecture (Mermaid)
+```mermaid
+flowchart TB
+    User["Developer User"]
+
+    subgraph FE["Frontend (React + Redux Toolkit)"]
+        UI["Pages / Components"]
+        Router["React Router"]
+        RTK["RTK Query API Slice"]
+        SocketClient["Socket.io Client (Singleton)"]
+        VideoCtx["WebRTC VideoCallContext"]
+        SW["Service Worker"]
+    end
+
+    subgraph BE["Backend (Node.js + Express)"]
+        App["app.js Bootstrap"]
+        Middleware["CORS + Cookies + JWT Auth + Rate Limiter"]
+
+        subgraph Routes["REST Route Layer (/api/*)"]
+            AuthR["auth.js"]
+            ProfileR["profile.js"]
+            RequestR["requests.js"]
+            UserR["user.js"]
+            ChatR["chat.js"]
+            NotificationR["notifications.js"]
+            PaymentR["payment.js"]
+            LeetR["leetcode.js"]
+        end
+
+        Services["Business Services + Validators"]
+        SocketServer["Socket.io Server\n(chat + notifications + call signaling)"]
+    end
+
+    subgraph DATA["Data & Cache Layer"]
+        Mongo[("MongoDB (Mongoose Models)")]
+        Redis[("Upstash Redis")]
+    end
+
+    subgraph EXT["External Integrations"]
+        OAuth["Google/GitHub OAuth"]
+        Razorpay["Razorpay Payments"]
+        Cloudinary["Cloudinary Media"]
+        Resend["Resend Email"]
+        LeetCode["LeetCode GraphQL"]
+        Push["Web Push (VAPID)"]
+    end
+
+    User --> UI
+    UI --> Router
+    Router --> RTK
+    UI <--> SocketClient
+    UI <--> VideoCtx
+    UI --> SW
+
+    RTK --> App
+    SocketClient <--> SocketServer
+    VideoCtx <--> SocketServer
+
+    App --> Middleware
+    Middleware --> Routes
+    Routes --> Services
+    Services <--> Mongo
+    Services <--> Redis
+    SocketServer <--> Mongo
+    SocketServer <--> Redis
+
+    Services <--> OAuth
+    Services <--> Razorpay
+    Services <--> Cloudinary
+    Services <--> Resend
+    Services <--> LeetCode
+    Services --> Push
+    SW <--> Push
+```
+
+### Database Schema (Mermaid ER Diagram)
+```mermaid
+erDiagram
+    USER {
+        objectId _id PK
+        string firstName
+        string emailId UK
+        string password
+        boolean isPremium
+        string membershipType
+        datetime createdAt
+    }
+
+    CONNECTION_REQUEST {
+        objectId _id PK
+        objectId fromUserId FK
+        objectId toUserId FK
+        string status
+        datetime createdAt
+    }
+
+    CHAT {
+        objectId _id PK
+        objectId[] participants
+        datetime createdAt
+    }
+
+    MESSAGE {
+        objectId _id PK
+        objectId chatId FK
+        objectId senderId FK
+        string text
+        string messageType
+        string fileUrl
+        datetime createdAt
+    }
+
+    NOTIFICATION {
+        objectId _id PK
+        objectId recipient FK
+        objectId sender FK
+        string type
+        boolean isRead
+        objectId relatedId
+        datetime createdAt
+    }
+
+    PAYMENT {
+        objectId _id PK
+        objectId userId FK
+        string orderId
+        string paymentId
+        string status
+        number amount
+        string currency
+        datetime createdAt
+    }
+
+    USER ||--o{ CONNECTION_REQUEST : sends
+    USER ||--o{ CONNECTION_REQUEST : receives
+    USER }o--o{ CHAT : participates_in
+    CHAT ||--o{ MESSAGE : contains
+    USER ||--o{ MESSAGE : sends
+    USER ||--o{ NOTIFICATION : receives
+    USER ||--o{ NOTIFICATION : triggers
+    USER ||--o{ PAYMENT : makes
+```
+
 ### Backend Directory Structure
 ```bash
 backend/
