@@ -72,7 +72,7 @@ export const Hero = ({ user }) => {
                             <div className="relative w-full bg-base-300/60 backdrop-blur-2xl rounded-[3rem] border border-white/10 overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] transform hover:rotate-1 hover:scale-[1.02] transition-all duration-700">
                                 <div className="aspect-[4/5] md:aspect-auto md:h-[600px] w-full relative">
                                     {/* Mock Profile Image */}
-                                    <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url('https://nirajkumar.vercel.app/assets/profileImg-Dg_W4rk-.jpg')` }}></div>
+                                    <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url('https://www.krakash.tech/assets/Akash-csW_2QVz.jpeg')` }}></div>
 
                                     {/* Overlay Gradients */}
                                     <div className="absolute inset-0 bg-gradient-to-t from-base-300 via-base-300/20 to-transparent"></div>
@@ -93,7 +93,7 @@ export const Hero = ({ user }) => {
                                     {/* Profile Details */}
                                     <div className="absolute bottom-8 left-8 right-8 z-20">
                                         <div className="mb-6">
-                                            <h3 className="text-4xl font-black text-white tracking-tighter mb-1">NIRAJ KUMAR</h3>
+                                            <h3 className="text-4xl font-black text-white tracking-tighter mb-1">AKASH KUMAR</h3>
                                             <div className="flex items-center gap-2 opacity-80">
                                                 <span className="w-2 h-2 rounded-full bg-success animate-pulse"></span>
                                                 <p className="text-xs font-bold uppercase tracking-widest text-white">Full Stack Architect • India</p>
@@ -146,7 +146,7 @@ export const Hero = ({ user }) => {
                                         </div>
                                         <div className="flex gap-4">
                                             <span className="opacity-20 select-none">3</span>
-                                            <span className="ml-4 opacity-70">target: </span> <code className="text-green-400">"Niraj Kumar"</code>,
+                                            <span className="ml-4 opacity-70">target: </span> <code className="text-green-400">"Akash Kumar"</code>,
                                         </div>
                                         <div className="flex gap-4">
                                             <span className="opacity-20 select-none">4</span>

@@ -35,14 +35,14 @@ const Footer = () => {
                         <div className="flex items-start gap-8 group">
                             {/* Profile Image - Large Rounded Rectangle per sketch */}
                             <div className="w-32 h-40 rounded-[2.5rem] bg-base-content/5 overflow-hidden border border-base-content/10 transition-all duration-700 shadow-2xl group-hover:border-primary/30 shrink-0">
-                                <img src="https://nirajkumar.vercel.app/assets/profileImg-Dg_W4rk-.jpg" alt="Niraj Kumar" className="w-full h-full object-cover" />
+                                <img src="https://www.krakash.tech/assets/Akash-csW_2QVz.jpeg" alt="Akash Kumar" className="w-full h-full object-cover" />
                             </div>
 
                             {/* Info Stack */}
                             <div className="flex flex-col gap-5 justify-center py-2">
                                 <div>
                                     <h6 className="text-3xl font-black uppercase tracking-tightest leading-tight text-base-content">
-                                        Niraj Kumar
+                                        Akash Kumar
                                     </h6>
                                     <p className="text-[11px] font-bold uppercase tracking-[0.2em] opacity-40 mt-1">Full Stack Engineer</p>
                                 </div>
